@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ paquete.nombre }} | Nomade{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:inicio' %}" class="text-decoration-none text-dark">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalogo:lista' %}" class="text-decoration-none text-dark">Catálogo</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ paquete.nombre }}</li>
+    </ol>
+</nav>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5 bg-white">
+    <div class="row g-0">
+        <div class="col-md-6 bg-light d-flex align-items-center justify-content-center p-0 border-end" style="min-height: 350px;">
+            {% if paquete.imagen %}
+                <img src="{{ paquete.imagen.url }}" alt="{{ paquete.nombre }}" class="img-fluid w-100 h-100" style="object-fit: cover;">
+            {% else %}
+                <i class="bi bi-map display-1 text-info opacity-50"></i>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6 p-4 p-md-5 d-flex flex-column justify-content-between">
+            <div>
+                <h1 class="h2 fw-bold text-dark mb-3">{{ paquete.nombre }}</h1>
+
+                <div class="mb-4 p-3 bg-light rounded-3 border">
+                    <div class="row text-muted">
+                        <div class="col-6">
+                            <span class="d-block small text-uppercase fw-bold mb-1"><i class="bi bi-calendar-event text-info me-1"></i>Inicio</span>
+                            <span class="text-dark">{{ paquete.fecha_inicio|date:"d M Y" }}</span>
+                        </div>
+                        <div class="col-6 border-start">
+                            <span class="d-block small text-uppercase fw-bold mb-1"><i class="bi bi-calendar-check text-info me-1"></i>Fin</span>
+                            <span class="text-dark">{{ paquete.fecha_fin|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <span class="display-5 fw-bold text-dark">${{ paquete.precio_paquete|floatformat:0 }}</span>
+                    <span class="text-muted small ms-2">CLP</span>
+                </div>
+
+                <div class="mb-4">
+                    <p class="text-muted lh-base">{{ paquete.descripcion }}</p>
+                </div>
+            </div>
+
+            <div class="border-top pt-4 mt-auto">
+                {% if paquete.cupos_disponibles > 0 %}
+                    <a href="{% url 'pedidos:agregar' paquete.id %}" class="btn btn-info btn-lg w-100 py-3 fw-bold text-white shadow-sm">
+                        Reservar (Quedan {{ paquete.cupos_disponibles }} cupos)
+                    </a>
+                {% else %}
+                    <button class="btn btn-secondary btn-lg w-100 py-3" disabled>Sin Cupos Disponibles</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-dark text-white fw-bold"><i class="bi bi-journal-text me-2"></i>Itinerario</div>
+            <ul class="list-group list-group-flush">
+                {% for itinerario in paquete.itinerario_set.all %}
+                <li class="list-group-item">
+                    <strong>{{ itinerario.dia|date:"d M" }} - {{ itinerario.horario|time:"H:i" }}</strong><br>
+                    {{ itinerario.actividad }}: <span class="text-muted small">{{ itinerario.descripcion }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Itinerario en construcción.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-info text-white fw-bold"><i class="bi bi-building me-2"></i>Hoteles Incluidos</div>
+            <ul class="list-group list-group-flush">
+                {% for paquete_hotel in paquete.paquetehotel_set.all %}
+                <li class="list-group-item">
+                    <strong>{{ paquete_hotel.id_hotel.nombre }}</strong> ({{ paquete_hotel.id_hotel.categoria }})<br>
+                    <span class="text-muted small">{{ paquete_hotel.id_hotel.ciudad }} - {{ paquete_hotel.id_hotel.direccion }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Sin hoteles registrados.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-airplane me-2"></i>Vuelos</div>
+            <ul class="list-group list-group-flush">
+                {% for paquete_vuelo in paquete.paquetevuelo_set.all %}
+                <li class="list-group-item">
+                    <strong>{{ paquete_vuelo.id_vuelo.aerolinea }}</strong><br>
+                    <span class="text-muted small">{{ paquete_vuelo.id_vuelo.ciudad_origen }} &rarr; {{ paquete_vuelo.id_vuelo.ciudad_destino }}</span><br>
+                    <span class="text-muted small">Salida: {{ paquete_vuelo.id_vuelo.fecha_salida|date:"d/m" }} {{ paquete_vuelo.id_vuelo.hora_salida|time:"H:i" }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Sin vuelos registrados.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5 bg-white">
+    <h3 class="h4 fw-bold mb-4"><i class="bi bi-star-fill text-warning me-2"></i>Reseñas de Pasajeros</h3>
+    {% for resena in paquete.resena_set.all %}
+        <div class="mb-3 border-bottom pb-3">
+            <div class="d-flex align-items-center mb-2">
+                <div class="fw-bold me-3">{{ resena.id_usuario.nombre }} {{ resena.id_usuario.apellido }}</div>
+                <div class="text-warning">
+                    {{ resena.calificacion }} / 5 <i class="bi bi-star-fill"></i>
+                </div>
+                <small class="text-muted ms-auto">{{ resena.fecha_publicacion|date:"d M Y" }}</small>
+            </div>
+            <p class="mb-0 text-secondary">{{ resena.comentario }}</p>
+        </div>
+    {% empty %}
+        <p class="text-muted">Aún no hay reseñas para este paquete turístico. ¡Sé el primero en viajar y comentarnos tu experiencia!</p>
+    {% endfor %}
+</div>
+{% endblock %}
