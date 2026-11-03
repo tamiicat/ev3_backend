@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Cuenta | Nomade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="bg-dark text-white p-4 p-md-5">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-person-circle fs-1 text-warning"></i>
+                    <div>
+                        <h2 class="h3 fw-bold mb-0">{{ usuario.nombre }} {{ usuario.apellido }}</h2>
+                        <span class="badge bg-warning text-dark fw-bold mt-1">RUT: {{ usuario.rut }}</span>
+                        {% if usuario.rol == 'administrador' %}
+                            <span class="badge bg-info text-dark fw-bold mt-1 ms-1">Personal de Agencia</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill me-2 text-warning"></i>Datos del Viajero</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th class="bg-light text-muted w-25">Nombre Completo:</th>
+                                <td>{{ usuario.nombre }} {{ usuario.apellido }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light text-muted">Correo Electrónico:</th>
+                                <td>{{ usuario.correo_electronico }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light text-muted">Teléfono de Contacto:</th>
+                                <td>{{ usuario.telefono|default:"No especificado" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a href="{% url 'catalogo:lista' %}" class="btn btn-warning fw-semibold">
+                        <i class="bi bi-globe me-1"></i>Explorar Paquetes Turísticos
+                    </a>
+                    {% if usuario.rol == 'administrador' %}
+                        <a href="{% url 'catalogo:gestion' %}" class="btn btn-dark">
+                            <i class="bi bi-briefcase me-1"></i>Gestionar Catálogo
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
