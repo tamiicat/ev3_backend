@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo_accion }} | Nomade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="{% url 'core:inicio' %}" class="text-decoration-none text-dark">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'catalogo:gestion' %}" class="text-decoration-none text-dark">Paquetes Turísticos</a></li>
+                <li class="breadcrumb-item active">{{ titulo_accion }}</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                    <h2 class="h4 fw-bold mb-1">{{ titulo_accion }}</h2>
+                    <p class="text-muted small mb-0">Completa la ficha técnica para publicar o actualizar el paquete turístico.</p>
+                </div>
+                <a href="{% url 'catalogo:gestion' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Volver al Listado
+                </a>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 small">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- Nombre y Categoría -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-7">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label fw-semibold">{{ form.nombre.label }}</label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger small mt-1">{{ form.nombre.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-5">
+                        <label for="{{ form.categoria.id_for_label }}" class="form-label fw-semibold">{{ form.categoria.label }}</label>
+                        {{ form.categoria }}
+                        {% if form.categoria.errors %}
+                            <div class="text-danger small mt-1">{{ form.categoria.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Fechas de Viaje -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label fw-semibold">{{ form.fecha_inicio.label }}</label>
+                        {{ form.fecha_inicio }}
+                        {% if form.fecha_inicio.errors %}
+                            <div class="text-danger small mt-1">{{ form.fecha_inicio.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.fecha_fin.id_for_label }}" class="form-label fw-semibold">{{ form.fecha_fin.label }}</label>
+                        {{ form.fecha_fin }}
+                        {% if form.fecha_fin.errors %}
+                            <div class="text-danger small mt-1">{{ form.fecha_fin.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Descripción -->
+                <div class="mb-3">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-semibold">{{ form.descripcion.label }}</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="text-danger small mt-1">{{ form.descripcion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Precio, Cupos y Estado -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label for="{{ form.precio_paquete.id_for_label }}" class="form-label fw-semibold">{{ form.precio_paquete.label }}</label>
+                        {{ form.precio_paquete }}
+                        {% if form.precio_paquete.errors %}
+                            <div class="text-danger small mt-1">{{ form.precio_paquete.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ form.cupos_disponibles.id_for_label }}" class="form-label fw-semibold">{{ form.cupos_disponibles.label }}</label>
+                        {{ form.cupos_disponibles }}
+                        {% if form.cupos_disponibles.errors %}
+                            <div class="text-danger small mt-1">{{ form.cupos_disponibles.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ form.estado.id_for_label }}" class="form-label fw-semibold">{{ form.estado.label }}</label>
+                        {{ form.estado }}
+                        {% if form.estado.errors %}
+                            <div class="text-danger small mt-1">{{ form.estado.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Selección de Servicios N:M -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.hoteles.id_for_label }}" class="form-label fw-semibold">{{ form.hoteles.label }}</label>
+                        {{ form.hoteles }}
+                        <small class="text-muted d-block mt-1">Mantén presionado Ctrl (o Cmd) para seleccionar múltiples hoteles.</small>
+                        {% if form.hoteles.errors %}
+                            <div class="text-danger small mt-1">{{ form.hoteles.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.vuelos.id_for_label }}" class="form-label fw-semibold">{{ form.vuelos.label }}</label>
+                        {{ form.vuelos }}
+                        <small class="text-muted d-block mt-1">Mantén presionado Ctrl (o Cmd) para seleccionar múltiples vuelos.</small>
+                        {% if form.vuelos.errors %}
+                            <div class="text-danger small mt-1">{{ form.vuelos.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Fotografía -->
+                <div class="mb-3">
+                    <label for="{{ form.imagen.id_for_label }}" class="form-label fw-semibold">{{ form.imagen.label }}</label>
+                    {{ form.imagen }}
+                    {% if form.imagen.errors %}
+                        <div class="text-danger small mt-1">{{ form.imagen.errors }}</div>
+                    {% endif %}
+                    {% if paquete and paquete.imagen %}
+                        <div class="mt-2 p-2 bg-light rounded d-flex align-items-center gap-3 border">
+                            <img src="{{ paquete.imagen.url }}" alt="Vista previa" style="width: 50px; height: 50px; object-fit: cover;" class="rounded border">
+                            <span class="small text-muted">Fotografía cargada actualmente.</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Opciones: Activo -->
+                <div class="row g-3 mb-4 p-3 bg-light rounded-3 border">
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            {{ form.activo }}
+                            <label class="form-check-label fw-semibold" for="{{ form.activo.id_for_label }}">
+                                {{ form.activo.label }}
+                            </label>
+                        </div>
+                        <small class="text-muted d-block ps-4">Visible inmediatamente en el catálogo web de la agencia.</small>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'catalogo:gestion' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-warning fw-bold text-dark px-4">
+                        <i class="bi bi-save me-1"></i>{{ boton_texto }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
