@@ -1,18 +1,17 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from catalogo.models import Paquete, Hotel, Vuelo, Itinerario
-from usuarios.models import Usuario
+from apps.catalogo.models import Paquete, Hotel, Vuelo, Itinerario
+from apps.usuarios.models import Usuario
 
 class Command(BaseCommand):
-    help = "Puebla la base de datos con paquetes turísticos, hoteles, vuelos e itinerarios para la agencia Nomade, respetando el Modelo Relacional."
+    help = "Puebla la base de datos de Nomade con paquetes, hoteles, vuelos e itinerarios"
 
     def handle(self, *args, **kwargs):
-        # Creación de Superusuario panel administrador
+        # creación de administradores
         if not User.objects.filter(username="admin").exists():
             User.objects.create_superuser("admin", "admin@nomade.cl", "admin")
             self.stdout.write(self.style.SUCCESS("✓ Superusuario nativo 'admin' creado."))
 
-        # Creación de Usuario Administrador
         if not Usuario.objects.filter(correo_electronico="admin@nomade.cl").exists():
             Usuario.objects.create(
                 rut="12345678-9",
@@ -25,7 +24,7 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS("✓ Usuario administrador de agencia creado."))
 
-        # Servicios (Hoteles y Vuelos)
+        # servicios base
         hotel_rio, _ = Hotel.objects.get_or_create(
             nombre="Copacabana Palace", 
             defaults={'ciudad': "Río de Janeiro", 'direccion': "Av. Atlántica 1702", 'categoria': "5 Estrellas", 'habitacion': 101, 'servicios': True}
@@ -44,7 +43,7 @@ class Command(BaseCommand):
             defaults={'fecha_salida': '2027-02-10', 'hora_salida': '09:00', 'fecha_llegada': '2027-02-10', 'hora_llegada': '11:00'}
         )
 
-        # Paquetes Turísticos
+        # paquetes turísticos
         paquete_rio, created_rio = Paquete.objects.get_or_create(
             nombre="Verano en Río de Janeiro",
             defaults={
@@ -75,4 +74,4 @@ class Command(BaseCommand):
             paquete_cusco.vuelos.add(vuelo_cusco)
             Itinerario.objects.get_or_create(paquete=paquete_cusco, dia='2027-02-11', defaults={'actividad': "Tour Ciudad de Cusco", 'descripcion': "Visita a plazas y ruinas.", 'horario': '10:00'})
 
-        self.stdout.write(self.style.SUCCESS("✓ Catálogo de Nomade poblado exitosamente con paquetes, hoteles, vuelos e itinerarios."))
+        self.stdout.write(self.style.SUCCESS("✓ Base de datos poblada exitosamente alineada al Modelo Relacional."))
