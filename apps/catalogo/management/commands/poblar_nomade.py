@@ -39,7 +39,7 @@ class Command(BaseCommand):
             )
             diccionario_categorias[nombre] = cat
             
-        self.stdout.write(self.style.SUCCESS("✓ Categorías de destino creados."))
+        self.stdout.write(self.style.SUCCESS("✓ Categorías de destino creados"))
 
         # servicios base
         hotel_rio, _ = Hotel.objects.get_or_create(

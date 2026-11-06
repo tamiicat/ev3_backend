@@ -67,6 +67,7 @@
                                 <th>Fecha</th>
                                 <th>Estado</th>
                                 <th class="text-end">Total</th>
+                                <th class="text-center">Reseña</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,14 +90,77 @@
                                     {% endif %}
                                 </td>
                                 <td class="text-end fw-bold text-dark">${{ reserva.precio_total|floatformat:0 }}</td>
+                                <td class="text-center">
+                                    {% if reserva.estado == 'Pagada' %}
+                                        <button type="button" class="btn btn-sm btn-outline-warning"
+                                                data-bs-toggle="modal" data-bs-target="#modalResena"
+                                                data-paquete-id="{{ reserva.paquete.id }}"
+                                                data-paquete-nombre="{{ reserva.paquete.nombre }}"
+                                                data-calificacion="{{ reserva.resena.calificacion|default:'' }}"
+                                                data-comentario="{{ reserva.resena.comentario|default:'' }}">
+                                            <i class="bi bi-star me-1"></i>{% if reserva.resena %}Editar reseña{% else %}Dejar reseña{% endif %}
+                                        </button>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">
+                                <td colspan="6" class="text-center py-4 text-muted">
                                     <i class="bi bi-inbox fs-2 d-block mb-2"></i>
                                     Aún no tienes reservas registradas en tu historial.
                                 </td>
                             </tr>
+                            <div class="modal fade" id="modalResena" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <form method="post" id="formResena" class="modal-content rounded-4 border-0">
+                                        {% csrf_token %}
+                                        <div class="modal-header border-0">
+                                            <h5 class="modal-title fw-bold">Reseña: <span id="resenaPaquete"></span></h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <label class="form-label fw-semibold">Calificación</label>
+                                            <div class="estrellas mb-3">
+                                                {% for i in "54321" %}
+                                                    <input type="radio" name="calificacion" id="estrella{{ i }}" value="{{ i }}" required>
+                                                    <label for="estrella{{ i }}">★</label>
+                                                {% endfor %}
+                                            </div>
+                                            <label for="resenaComentario" class="form-label fw-semibold">Tu experiencia</label>
+                                            <textarea name="comentario" id="resenaComentario" class="form-control" rows="4" required></textarea>
+                                        </div>
+                                        <div class="modal-footer border-0">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-info fw-semibold">Guardar reseña</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <style>
+                                .estrellas { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 4px; }
+                                .estrellas input { display: none; }
+                                .estrellas label { font-size: 2rem; color: #ccc; cursor: pointer; }
+                                .estrellas input:checked ~ label,
+                                .estrellas label:hover,
+                                .estrellas label:hover ~ label { color: #ffc107; }
+                            </style>
+
+                            <script>
+                                const urlResena = "{% url 'catalogo:guardar_resena' 0 %}";
+
+                                document.getElementById('modalResena').addEventListener('show.bs.modal', function (e) {
+                                    const btn = e.relatedTarget;
+                                    document.getElementById('formResena').action = urlResena.replace('/0/', `/${btn.dataset.paqueteId}/`);
+                                    document.getElementById('resenaPaquete').textContent = btn.dataset.paqueteNombre;
+                                    document.getElementById('resenaComentario').value = btn.dataset.comentario || '';
+                                    document.querySelectorAll('#formResena input[name=calificacion]').forEach(r => {
+                                        r.checked = (r.value === btn.dataset.calificacion);
+                                    });
+                                });
+                            </script>
                             {% endfor %}
                         </tbody>
                     </table>

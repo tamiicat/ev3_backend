@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo_accion }} | Nomade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="{% url 'core:inicio' %}" class="text-decoration-none text-dark">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'catalogo:gestion_itinerario' %}" class="text-decoration-none text-dark">Gestión de Itinerarios</a></li>
+                <li class="breadcrumb-item active">{{ titulo_accion }}</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                    <h2 class="h4 fw-bold mb-1">{{ titulo_accion }}</h2>
+                    <p class="text-muted small mb-0">Completa los detalles de la actividad para el paquete correspondiente.</p>
+                </div>
+                <a href="{% url 'catalogo:gestion_itinerario' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Volver al Listado
+                </a>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 small">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- Selección del Paquete -->
+                <div class="mb-3">
+                    <label for="{{ form.paquete.id_for_label }}" class="form-label fw-semibold">{{ form.paquete.label }}</label>
+                    {{ form.paquete }}
+                    {% if form.paquete.errors %}
+                        <div class="text-danger small mt-1">{{ form.paquete.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Fecha y Horario -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.dia.id_for_label }}" class="form-label fw-semibold">{{ form.dia.label }}</label>
+                        {{ form.dia }}
+                        {% if form.dia.errors %}
+                            <div class="text-danger small mt-1">{{ form.dia.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.horario.id_for_label }}" class="form-label fw-semibold">{{ form.horario.label }}</label>
+                        {{ form.horario }}
+                        {% if form.horario.errors %}
+                            <div class="text-danger small mt-1">{{ form.horario.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Nombre de Actividad -->
+                <div class="mb-3">
+                    <label for="{{ form.actividad.id_for_label }}" class="form-label fw-semibold">{{ form.actividad.label }}</label>
+                    {{ form.actividad }}
+                    {% if form.actividad.errors %}
+                        <div class="text-danger small mt-1">{{ form.actividad.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Descripción -->
+                <div class="mb-4">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-semibold">{{ form.descripcion.label }}</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="text-danger small mt-1">{{ form.descripcion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'catalogo:gestion_itinerario' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-warning fw-bold text-dark px-4">
+                        <i class="bi bi-save me-1"></i>{{ boton_texto }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

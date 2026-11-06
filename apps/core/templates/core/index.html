@@ -59,6 +59,9 @@
                     </div>
                     <div class="d-grid gap-2 mt-3">
                         <a href="{% url 'catalogo:detalle' paquete.id %}" class="btn btn-outline-dark btn-sm">Ver Detalles</a>
+                        {% if paquete.cupos_disponibles > 0 %}
+                        <a href="{% url 'pedidos:agregar' paquete.id %}" class="btn btn-info btn-sm fw-semibold text-white">Reservar</a>
+                    {% endif %}
                     </div>
                 </div>
             </div>

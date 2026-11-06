@@ -4,6 +4,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from functools import wraps
 from .forms import RegistroForm, LoginForm
 from .models import Usuario
+from apps.catalogo.models import Resena
 
 def login_requerido_custom(view_func):
     @wraps(view_func)
@@ -74,10 +75,12 @@ def logout_usuario(request):
 @login_requerido_custom
 def perfil_usuario(request):
     usuario = Usuario.objects.get(id=request.session['usuario_id'])
-
-    reservas = usuario.reservas.select_related('paquete').all().order_by('-fecha')
+    reservas = list(usuario.reservas.select_related('paquete').order_by('-fecha'))
+    resenas = {r.paquete_id: r for r in Resena.objects.filter(usuario=usuario)}
+    for reserva in reservas:
+        reserva.resena = resenas.get(reserva.paquete_id)
 
     return render(request, 'usuarios/perfil.html', {
         'usuario': usuario,
-        'reservas': reservas
+        'reservas': reservas,
     })

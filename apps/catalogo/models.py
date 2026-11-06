@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class CategoriaDestino(models.Model):
     nombre = models.CharField(max_length=100, unique=True, verbose_name="Continente o Región")
@@ -91,9 +91,15 @@ class Itinerario(models.Model):
 class Resena(models.Model):
     usuario = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE, related_name="resenas")
     paquete = models.ForeignKey(Paquete, on_delete=models.CASCADE, related_name="resenas")
-    calificacion = models.IntegerField()
+    calificacion = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
     comentario = models.TextField()
     fecha_publicacion = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'paquete')
+        ordering = ['-fecha_publicacion']
 
     def __str__(self):
         return f"Reseña de {self.usuario.nombre} para {self.paquete.nombre}"

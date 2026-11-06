@@ -1,5 +1,5 @@
 from django import forms
-from .models import Paquete
+from .models import Paquete, Itinerario
 
 class PaqueteForm(forms.ModelForm):
     class Meta:
@@ -48,3 +48,22 @@ class PaqueteForm(forms.ModelForm):
         if inicio and fin and fin < inicio:
             self.add_error('fecha_fin', "La fecha de término no puede ser anterior a la de inicio.")
         return cleaned
+
+class ItinerarioForm(forms.ModelForm):
+    class Meta:
+        model = Itinerario
+        fields = ['paquete', 'dia', 'actividad', 'descripcion', 'horario']
+        labels = {
+            'paquete': 'Paquete Turístico',
+            'dia': 'Fecha de la actividad',
+            'actividad': 'Nombre de la Actividad',
+            'descripcion': 'Descripción detallada',
+            'horario': 'Horario (HH:MM)'
+        }
+        widgets = {
+            'paquete': forms.Select(attrs={'class': 'form-select'}),
+            'dia': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'actividad': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Visita al museo histórico'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Detalles del punto de encuentro y la actividad...'}),
+            'horario': forms.TimeInput(format='%H:%M', attrs={'class': 'form-control', 'type': 'time'}),
+        }
