@@ -8,10 +8,10 @@
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
             <div class="bg-dark text-white p-4 p-md-5">
                 <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-person-circle fs-1 text-warning"></i>
+                    <i class="bi bi-person-circle fs-1 text-info"></i>
                     <div>
                         <h2 class="h3 fw-bold mb-0">{{ usuario.nombre }} {{ usuario.apellido }}</h2>
-                        <span class="badge bg-warning text-dark fw-bold mt-1">RUT: {{ usuario.rut }}</span>
+                        <span class="badge bg-info text-dark fw-bold mt-1">RUT: {{ usuario.rut }}</span>
                         {% if usuario.rol == 'administrador' %}
                             <span class="badge bg-info text-dark fw-bold mt-1 ms-1">Personal de Agencia</span>
                         {% endif %}
@@ -20,7 +20,7 @@
             </div>
 
             <div class="card-body p-4 p-md-5">
-                <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill me-2 text-warning"></i>Datos del Viajero</h5>
+                <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill me-2 text-info"></i>Datos del Viajero</h5>
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <tbody>
@@ -41,7 +41,7 @@
                 </div>
 
                 <div class="mt-4 d-flex gap-2">
-                    <a href="{% url 'catalogo:lista' %}" class="btn btn-warning fw-semibold">
+                    <a href="{% url 'catalogo:lista' %}" class="btn btn-info fw-semibold">
                         <i class="bi bi-globe me-1"></i>Explorar Paquetes Turísticos
                     </a>
                     {% if usuario.rol == 'administrador' %}
@@ -56,7 +56,7 @@
         <!-- Nueva Sección: Historial de Reservas -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
             <div class="card-body p-4 p-md-5">
-                <h5 class="fw-bold mb-4"><i class="bi bi-calendar2-check-fill me-2 text-warning"></i>Historial de Reservas</h5>
+                <h5 class="fw-bold mb-4"><i class="bi bi-calendar2-check-fill me-2 text-info"></i>Historial de Reservas</h5>
                 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
@@ -83,7 +83,7 @@
                                     {% if reserva.estado == 'Confirmada' or reserva.estado == 'Pagada' %}
                                         <span class="badge bg-success-subtle text-success border border-success-subtle">{{ reserva.estado }}</span>
                                     {% elif reserva.estado == 'Pendiente' %}
-                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">{{ reserva.estado }}</span>
+                                        <span class="badge bg-warning-subtle text-info border border-warning-subtle">{{ reserva.estado }}</span>
                                     {% else %}
                                         <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ reserva.estado }}</span>
                                     {% endif %}

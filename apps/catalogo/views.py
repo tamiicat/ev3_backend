@@ -65,10 +65,14 @@ def paquete_lista(request):
     })
 
 def paquete_detalle(request, id):
-    paquete = get_object_or_404(Paquete.objects.select_related('categoria'), id=id, activo=True)
-    relacionadas = Paquete.objects.filter(categoria=paquete.categoria, activo=True).exclude(pk=paquete.pk)[:3]
-    return render(request, 'catalogo/paquete_detalle.html', {'paquete': paquete, 'relacionadas': relacionadas})
-
+        paquete = get_object_or_404(Paquete.objects.select_related('categoria'), id=id, activo=True)
+        relacionadas = Paquete.objects.filter(categoria=paquete.categoria, activo=True).exclude(pk=paquete.pk)[:3]
+        return render(request, 'catalogo/paquete_detalle.html', {
+            'paquete': paquete,
+            'relacionadas': relacionadas,
+            'es_admin': es_administrador(request),
+        })
+        
 @admin_requerido
 def gestion_paquetes(request):
     query = request.GET.get('q', '').strip()

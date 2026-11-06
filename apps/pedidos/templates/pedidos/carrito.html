@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="mb-4">
-    <h1 class="h3 fw-bold mb-1"><i class="bi bi-cart3 text-warning me-2"></i>Carrito de Compras</h1>
+    <h1 class="h3 fw-bold mb-1"><i class="bi bi-cart3 text-info me-2"></i>Carrito de Compras</h1>
     <p class="text-muted small">Selección de paquetes turísticos para tu próximo viaje.</p>
 </div>
 
@@ -14,7 +14,7 @@
         <i class="bi bi-cart-x text-muted display-1 mb-3"></i>
         <h3 class="fw-bold text-secondary">Tu carrito de compras está vacío</h3>
         <p class="text-muted mb-4">Aún no has seleccionado paquetes turísticos para tu viaje.</p>
-        <a href="{% url 'catalogo:lista' %}" class="btn btn-warning px-4 py-2 fw-bold text-dark">
+        <a href="{% url 'catalogo:lista' %}" class="btn btn-info px-4 py-2 fw-bold text-dark">
             <i class="bi bi-globe me-2"></i>Explorar Paquetes Turísticos
         </a>
     </div>
@@ -87,7 +87,7 @@
     <!-- Resumen de Compra -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-            <h5 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-warning"></i>Resumen de Reserva</h5>
+            <h5 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-info"></i>Resumen de Reserva</h5>
 
             <div class="d-flex justify-content-between text-muted mb-2">
                 <span>Subtotal neto:</span>
@@ -106,7 +106,7 @@
             {% if request.session.usuario_id %}
                 <form method="post" action="{% url 'pedidos:checkout' %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-warning w-100 py-3 fw-bold text-dark shadow-sm">
+                    <button type="submit" class="btn btn-info w-100 py-3 fw-bold text-dark shadow-sm">
                         <i class="bi bi-credit-card me-2"></i>Confirmar y Procesar Reserva
                     </button>
                 </form>
@@ -114,7 +114,7 @@
                 <div class="alert alert-warning small mb-3">
                     <i class="bi bi-info-circle me-1"></i>Inicia sesión con tu cuenta para confirmar la reserva.
                 </div>
-                <a href="{% url 'usuarios:login' %}?next={% url 'pedidos:checkout' %}" class="btn btn-warning w-100 py-3 fw-bold text-dark">
+                <a href="{% url 'usuarios:login' %}?next={% url 'pedidos:checkout' %}" class="btn btn-info w-100 py-3 fw-bold text-dark">
                     <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión para Reservar
                 </a>
             {% endif %}
