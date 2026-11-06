@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from apps.catalogo.models import Paquete
+from apps.usuarios.models import Usuario
+from apps.pedidos.models import Reserva, Pago
 
 def _obtener_carrito(request):
     return request.session.setdefault('carrito', {})
@@ -76,11 +78,43 @@ def checkout_simulado(request):
     if not carrito:
         return redirect('catalogo:lista')
 
+    # Obtener el usuario actual desde la sesión personalizada
+    usuario = get_object_or_404(Usuario, id=request.session['usuario_id'])
+    
     subtotal = sum(item['subtotal'] for item in carrito.values())
     iva = int(subtotal * 0.19)
     total = subtotal + iva
     items_comprados = list(carrito.values())
 
+    # Registrar las reservas, el pago y descontar cupos en la base de datos
+    for item in items_comprados:
+        paquete = get_object_or_404(Paquete, id=item['id'])
+        
+        # Calcular el valor individual de esta reserva con su respectivo IVA
+        valor_con_iva = item['subtotal'] + int(item['subtotal'] * 0.19)
+
+        # 1. Crear el registro de la Reserva
+        reserva = Reserva.objects.create(
+            usuario=usuario,
+            paquete=paquete,
+            estado='Pagada',
+            precio_total=valor_con_iva
+        )
+
+        # 2. Registrar el Pago Ficticio asociado a la reserva
+        Pago.objects.create(
+            reserva=reserva,
+            monto=valor_con_iva,
+            metodo_pago='Webpay Simulador',
+            estado_transaccion='Aprobada'
+        )
+
+        # 3. Descontar los cupos del catálogo
+        if paquete.cupos_disponibles >= item['cantidad']:
+            paquete.cupos_disponibles -= item['cantidad']
+            paquete.save()
+
+    # Vaciar el carrito tras confirmar la compra
     del request.session['carrito']
     request.session.modified = True
 
@@ -89,5 +123,5 @@ def checkout_simulado(request):
         'subtotal': subtotal,
         'iva': iva,
         'total': total,
-        'orden_id': f"RES-{request.user.id}-2026",
+        'orden_id': f"RES-{usuario.id}-2026",
     })

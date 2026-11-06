@@ -24,10 +24,10 @@
                     
                     {% if request.session.usuario_rol == 'administrador' or user.is_staff %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-warning" href="#" data-bs-toggle="dropdown">Administración</a>
+                        <a class="nav-link dropdown-toggle text-info" href="#" data-bs-toggle="dropdown">Administración</a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'catalogo:gestion' %}">Gestión de Paquetes</a></li>
-                            <li><a class="dropdown-item" href="{% url 'catalogo:crear' %}">Nuevo Paquete</a></li>
+                            <li><a class="dropdown-item" href="{% url 'catalogo:gestion' %}">Inventario</a></li>
+                            <li><a class="dropdown-item" href="{% url 'catalogo:crear' %}">Nuevo Paquete Turístico</a></li>
                         </ul>
                     </li>
                     {% endif %}

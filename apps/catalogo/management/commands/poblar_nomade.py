@@ -1,10 +1,11 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from apps.catalogo.models import Paquete, Hotel, Vuelo, Itinerario
+from django.utils.text import slugify
+from apps.catalogo.models import Paquete, Hotel, Vuelo, Itinerario, CategoriaDestino
 from apps.usuarios.models import Usuario
 
 class Command(BaseCommand):
-    help = "Puebla la base de datos de Nomade con paquetes, hoteles, vuelos e itinerarios"
+    help = "Puebla la base de datos de Nomade con categorías (continentes), paquetes, hoteles, vuelos e itinerarios"
 
     def handle(self, *args, **kwargs):
         # creación de administradores
@@ -23,6 +24,22 @@ class Command(BaseCommand):
                 rol="administrador"
             )
             self.stdout.write(self.style.SUCCESS("✓ Usuario administrador de agencia creado."))
+
+        # creación de continentes / categorías de destino
+        nombres_continentes = [
+            "África", "América del Norte", "América del Sur", "Asia", "Centroamérica y Caribe", 
+            "Europa",  "Oceanía", "Medio Oriente"
+        ]
+        
+        diccionario_categorias = {}
+        for nombre in nombres_continentes:
+            cat, _ = CategoriaDestino.objects.get_or_create(
+                nombre=nombre,
+                defaults={'slug': slugify(nombre)}
+            )
+            diccionario_categorias[nombre] = cat
+            
+        self.stdout.write(self.style.SUCCESS("✓ Categorías de destino creados."))
 
         # servicios base
         hotel_rio, _ = Hotel.objects.get_or_create(
@@ -44,9 +61,12 @@ class Command(BaseCommand):
         )
 
         # paquetes turísticos
+        nombre_paquete_rio = "Verano en Río de Janeiro"
         paquete_rio, created_rio = Paquete.objects.get_or_create(
-            nombre="Verano en Río de Janeiro",
+            nombre=nombre_paquete_rio,
             defaults={
+                'slug': slugify(nombre_paquete_rio),
+                'categoria': diccionario_categorias["América del Sur"], 
                 'descripcion': "Disfruta de las playas más famosas de Brasil con caipirinhas incluidas.",
                 'precio_paquete': 450000.0,
                 'cupos_disponibles': 20,
@@ -56,12 +76,14 @@ class Command(BaseCommand):
         )
         if created_rio:
             paquete_rio.hoteles.add(hotel_rio)
-            paquete_rio.vuelos.add(vuelo_rio)
             Itinerario.objects.get_or_create(paquete=paquete_rio, dia='2027-01-16', defaults={'actividad': "City Tour Río", 'descripcion': "Visita al Cristo Redentor.", 'horario': '09:00'})
 
+        nombre_paquete_cusco = "Ruta del Imperio Inca"
         paquete_cusco, created_cusco = Paquete.objects.get_or_create(
-            nombre="Ruta del Imperio Inca",
+            nombre=nombre_paquete_cusco,
             defaults={
+                'slug': slugify(nombre_paquete_cusco),
+                'categoria': diccionario_categorias["América del Sur"], 
                 'descripcion': "Expedición por Cusco, Valle Sagrado y Machu Picchu.",
                 'precio_paquete': 320000.0,
                 'cupos_disponibles': 15,
@@ -74,4 +96,4 @@ class Command(BaseCommand):
             paquete_cusco.vuelos.add(vuelo_cusco)
             Itinerario.objects.get_or_create(paquete=paquete_cusco, dia='2027-02-11', defaults={'actividad': "Tour Ciudad de Cusco", 'descripcion': "Visita a plazas y ruinas.", 'horario': '10:00'})
 
-        self.stdout.write(self.style.SUCCESS("✓ Base de datos poblada exitosamente alineada al Modelo Relacional."))
+        self.stdout.write(self.style.SUCCESS("✓ Base de datos poblada exitosamente"))

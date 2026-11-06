@@ -62,4 +62,11 @@ def logout_usuario(request):
 @login_requerido_custom
 def perfil_usuario(request):
     usuario = Usuario.objects.get(id=request.session['usuario_id'])
-    return render(request, 'usuarios/perfil.html', {'usuario': usuario})
+    
+    # Extraer reservas del usuario, ordenadas por la fecha más reciente
+    reservas = usuario.reservas.select_related('paquete').all().order_by('-fecha')
+    
+    return render(request, 'usuarios/perfil.html', {
+        'usuario': usuario, 
+        'reservas': reservas
+    })

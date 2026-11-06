@@ -5,7 +5,7 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
             <div class="bg-dark text-white p-4 p-md-5">
                 <div class="d-flex align-items-center gap-3">
                     <i class="bi bi-person-circle fs-1 text-warning"></i>
@@ -49,6 +49,57 @@
                             <i class="bi bi-briefcase me-1"></i>Gestionar Catálogo
                         </a>
                     {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Nueva Sección: Historial de Reservas -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="card-body p-4 p-md-5">
+                <h5 class="fw-bold mb-4"><i class="bi bi-calendar2-check-fill me-2 text-warning"></i>Historial de Reservas</h5>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Reserva</th>
+                                <th>Paquete Turístico</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reserva in reservas %}
+                            <tr>
+                                <td class="fw-bold text-muted">#{{ reserva.id }}</td>
+                                <td>
+                                    <a href="{% url 'catalogo:detalle' reserva.paquete.id %}" class="text-dark text-decoration-none fw-semibold">
+                                        {{ reserva.paquete.nombre }}
+                                    </a>
+                                </td>
+                                <td>{{ reserva.fecha|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if reserva.estado == 'Confirmada' or reserva.estado == 'Pagada' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">{{ reserva.estado }}</span>
+                                    {% elif reserva.estado == 'Pendiente' %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">{{ reserva.estado }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ reserva.estado }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end fw-bold text-dark">${{ reserva.precio_total|floatformat:0 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                    Aún no tienes reservas registradas en tu historial.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
