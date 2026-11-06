@@ -9,7 +9,7 @@
         <p class="text-muted small mb-0">Panel para administrar el catálogo de viajes, cupos y precios.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'catalogo:crear' %}" class="btn btn-warning fw-semibold text-dark">
+        <a href="{% url 'catalogo:crear' %}" class="btn btn-info fw-semibold text-dark">
             <i class="bi bi-plus-circle me-1"></i>Ingresar Nuevo Paquete
         </a>
     </div>
@@ -87,7 +87,7 @@
                     </td>
                     <td class="text-end">
                         <div class="btn-group btn-group-sm">
-                            <a href="{% url 'catalogo:editar' paquete.id %}" class="btn btn-outline-primary" title="Editar Paquete">
+                            <a href="{% url 'catalogo:editar' paquete.id %}" class="btn btn-outline-info" title="Editar Paquete">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <a href="{% url 'catalogo:eliminar' paquete.id %}" class="btn btn-outline-danger" title="Eliminar Paquete">

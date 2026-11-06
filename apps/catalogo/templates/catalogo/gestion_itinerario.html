@@ -5,11 +5,11 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h1 class="h3 fw-bold mb-1"><i class="bi bi-journal-text text-warning me-2"></i>Gestión de Itinerarios</h1>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-journal-text text-info me-2"></i>Gestión de Itinerarios</h1>
         <p class="text-muted small mb-0">Panel operativo para administrar las actividades de los paquetes turísticos.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'catalogo:itinerario_crear' %}" class="btn btn-warning fw-semibold text-dark">
+        <a href="{% url 'catalogo:itinerario_crear' %}" class="btn btn-info fw-semibold text-dark">
             <i class="bi bi-plus-circle me-1"></i>Agregar Actividad
         </a>
     </div>
@@ -53,7 +53,7 @@
                     <td>{{ itinerario.horario|time:"H:i" }}</td>
                     <td class="text-end">
                         <div class="btn-group btn-group-sm">
-                            <a href="{% url 'catalogo:itinerario_editar' itinerario.id %}" class="btn btn-outline-primary" title="Editar Actividad">
+                            <a href="{% url 'catalogo:itinerario_editar' itinerario.id %}" class="btn btn-outline-info" title="Editar Actividad">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <a href="{% url 'catalogo:itinerario_eliminar' itinerario.id %}" class="btn btn-outline-danger" title="Eliminar Actividad">
