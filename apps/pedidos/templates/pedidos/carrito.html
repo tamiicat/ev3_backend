@@ -104,9 +104,12 @@
             </div>
 
             {% if request.session.usuario_id %}
-                <a href="{% url 'pedidos:checkout' %}" class="btn btn-warning w-100 py-3 fw-bold text-dark shadow-sm">
-                    <i class="bi bi-credit-card me-2"></i>Confirmar y Procesar Reserva
-                </a>
+                <form method="post" action="{% url 'pedidos:checkout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning w-100 py-3 fw-bold text-dark shadow-sm">
+                        <i class="bi bi-credit-card me-2"></i>Confirmar y Procesar Reserva
+                    </button>
+                </form>
             {% else %}
                 <div class="alert alert-warning small mb-3">
                     <i class="bi bi-info-circle me-1"></i>Inicia sesión con tu cuenta para confirmar la reserva.

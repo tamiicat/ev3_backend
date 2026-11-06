@@ -6,15 +6,11 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h1 class="h3 fw-bold mb-1"><i class="bi bi-airplane text-info me-2"></i>Gestión de Paquetes Turísticos</h1>
-        <p class="text-muted small mb-0">Panel operativo para administrar el catálogo de viajes, cupos y precios.</p>
+        <p class="text-muted small mb-0">Panel para administrar el catálogo de viajes, cupos y precios.</p>
     </div>
-    
     <div class="d-flex gap-2">
         <a href="{% url 'catalogo:crear' %}" class="btn btn-warning fw-semibold text-dark">
             <i class="bi bi-plus-circle me-1"></i>Ingresar Nuevo Paquete
-        </a>
-        <a href="/admin/catalogo/paquete/" target="_blank" class="btn btn-outline-dark">
-            <i class="bi bi-shield-lock me-1"></i>Panel de Control
         </a>
     </div>
 </div>
@@ -23,7 +19,7 @@
 <div class="card border shadow-sm p-3 mb-4 rounded-3 bg-white">
     <form method="get" class="row g-2">
         <div class="col-md-10">
-            <input type="text" name="q" class="form-control" placeholder="Buscar por nombre del paquete o descripción..." value="{{ query }}">
+            <input type="text" name="q" class="form-control" placeholder="Buscar por nombre, destino o descripción..." value="{{ query }}">
         </div>
         <div class="col-md-2 d-grid">
             <button type="submit" class="btn btn-dark">Filtrar</button>
@@ -38,10 +34,13 @@
             <thead class="table-dark">
                 <tr>
                     <th scope="col" style="width: 70px;">ID</th>
+                    <th scope="col" style="width: 80px;">Foto</th>
                     <th scope="col">Nombre del Paquete</th>
+                    <th scope="col">Categoría</th>
                     <th scope="col">Fechas de Viaje</th>
                     <th scope="col">Precio</th>
                     <th scope="col">Cupos</th>
+                    <th scope="col">Estado</th>
                     <th scope="col" class="text-end" style="width: 150px;">Acciones</th>
                 </tr>
             </thead>
@@ -50,9 +49,25 @@
                 <tr>
                     <td class="fw-bold text-muted">#{{ paquete.id }}</td>
                     <td>
+                        {% if paquete.imagen %}
+                            <img src="{{ paquete.imagen.url }}" alt="{{ paquete.nombre }}" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light rounded border text-center d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="bi bi-image text-muted"></i>
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>
                         <a href="{% url 'catalogo:detalle' paquete.id %}" class="fw-bold text-dark text-decoration-none">
                             {{ paquete.nombre }}
                         </a>
+                    </td>
+                    <td>
+                        {% if paquete.categoria %}
+                            <span class="badge bg-light text-dark border">{{ paquete.categoria.nombre }}</span>
+                        {% else %}
+                            <span class="text-muted small">—</span>
+                        {% endif %}
                     </td>
                     <td class="text-secondary small">{{ paquete.fecha_inicio|date:"d/m/Y" }} - {{ paquete.fecha_fin|date:"d/m/Y" }}</td>
                     <td class="fw-bold text-dark">${{ paquete.precio_paquete|floatformat:0 }}</td>
@@ -61,6 +76,13 @@
                             <span class="badge bg-success-subtle text-success border border-success-subtle">{{ paquete.cupos_disponibles }} disp.</span>
                         {% else %}
                             <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Agotado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if paquete.activo %}
+                            <span class="badge bg-success">Activo</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactivo</span>
                         {% endif %}
                     </td>
                     <td class="text-end">
@@ -76,7 +98,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="9" class="text-center py-5 text-muted">
                         <i class="bi bi-inbox display-4 d-block mb-2"></i>
                         No hay paquetes turísticos registrados en el inventario.
                     </td>

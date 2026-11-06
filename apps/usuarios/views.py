@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
 from functools import wraps
 from .forms import RegistroForm, LoginForm
 from .models import Usuario
@@ -16,7 +17,7 @@ def login_requerido_custom(view_func):
 def registro_usuario(request):
     if request.session.get('usuario_id'):
         return redirect('catalogo:lista')
-        
+
     if request.method == 'POST':
         form = RegistroForm(request.POST)
         if form.is_valid():
@@ -26,28 +27,39 @@ def registro_usuario(request):
 
             request.session['usuario_id'] = usuario.id
             request.session['usuario_rol'] = usuario.rol
+            request.session['usuario_nombre'] = usuario.nombre
             messages.success(request, f"¡Bienvenido {usuario.nombre}! Cuenta creada.")
             return redirect('catalogo:lista')
     else:
         form = RegistroForm()
     return render(request, 'usuarios/registro.html', {'form': form})
 
+def _destino_seguro(request, destino):
+    if not destino:
+        return 'catalogo:lista'
+    if destino.startswith('/'):
+        if url_has_allowed_host_and_scheme(destino, allowed_hosts={request.get_host()}):
+            return destino
+        return 'catalogo:lista'
+    return destino
+
 def login_usuario(request):
     if request.session.get('usuario_id'):
         return redirect('catalogo:lista')
-        
+
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
             correo = form.cleaned_data.get('correo_electronico')
             contrasena = form.cleaned_data.get('contrasena')
-            
+
             try:
                 usuario = Usuario.objects.get(correo_electronico=correo, contrasena=contrasena)
                 request.session['usuario_id'] = usuario.id
                 request.session['usuario_rol'] = usuario.rol
+                request.session['usuario_nombre'] = usuario.nombre
                 messages.success(request, f"¡Bienvenido {usuario.nombre}! Sesión iniciada correctamente.")
-                return redirect(request.POST.get('next') or 'catalogo:lista')
+                return redirect(_destino_seguro(request, request.POST.get('next')))
             except Usuario.DoesNotExist:
                 messages.error(request, "Correo o contraseña incorrectos.")
     else:
@@ -55,18 +67,17 @@ def login_usuario(request):
     return render(request, 'usuarios/login.html', {'form': form, 'next': request.GET.get('next', 'catalogo:lista')})
 
 def logout_usuario(request):
-    request.session.flush() 
+    request.session.flush()
     messages.info(request, "Has cerrado sesión.")
     return redirect('core:inicio')
 
 @login_requerido_custom
 def perfil_usuario(request):
     usuario = Usuario.objects.get(id=request.session['usuario_id'])
-    
-    # Extraer reservas del usuario, ordenadas por la fecha más reciente
+
     reservas = usuario.reservas.select_related('paquete').all().order_by('-fecha')
-    
+
     return render(request, 'usuarios/perfil.html', {
-        'usuario': usuario, 
+        'usuario': usuario,
         'reservas': reservas
     })
