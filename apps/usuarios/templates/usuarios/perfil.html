@@ -53,11 +53,11 @@
             </div>
         </div>
 
-        <!-- Nueva Sección: Historial de Reservas -->
+        <!-- Historial de Reservas -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
             <div class="card-body p-4 p-md-5">
                 <h5 class="fw-bold mb-4"><i class="bi bi-calendar2-check-fill me-2 text-info"></i>Historial de Reservas</h5>
-                
+
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
@@ -112,55 +112,6 @@
                                     Aún no tienes reservas registradas en tu historial.
                                 </td>
                             </tr>
-                            <div class="modal fade" id="modalResena" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <form method="post" id="formResena" class="modal-content rounded-4 border-0">
-                                        {% csrf_token %}
-                                        <div class="modal-header border-0">
-                                            <h5 class="modal-title fw-bold">Reseña: <span id="resenaPaquete"></span></h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <label class="form-label fw-semibold">Calificación</label>
-                                            <div class="estrellas mb-3">
-                                                {% for i in "54321" %}
-                                                    <input type="radio" name="calificacion" id="estrella{{ i }}" value="{{ i }}" required>
-                                                    <label for="estrella{{ i }}">★</label>
-                                                {% endfor %}
-                                            </div>
-                                            <label for="resenaComentario" class="form-label fw-semibold">Tu experiencia</label>
-                                            <textarea name="comentario" id="resenaComentario" class="form-control" rows="4" required></textarea>
-                                        </div>
-                                        <div class="modal-footer border-0">
-                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                                            <button type="submit" class="btn btn-info fw-semibold">Guardar reseña</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-
-                            <style>
-                                .estrellas { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 4px; }
-                                .estrellas input { display: none; }
-                                .estrellas label { font-size: 2rem; color: #ccc; cursor: pointer; }
-                                .estrellas input:checked ~ label,
-                                .estrellas label:hover,
-                                .estrellas label:hover ~ label { color: #ffc107; }
-                            </style>
-
-                            <script>
-                                const urlResena = "{% url 'catalogo:guardar_resena' 0 %}";
-
-                                document.getElementById('modalResena').addEventListener('show.bs.modal', function (e) {
-                                    const btn = e.relatedTarget;
-                                    document.getElementById('formResena').action = urlResena.replace('/0/', `/${btn.dataset.paqueteId}/`);
-                                    document.getElementById('resenaPaquete').textContent = btn.dataset.paqueteNombre;
-                                    document.getElementById('resenaComentario').value = btn.dataset.comentario || '';
-                                    document.querySelectorAll('#formResena input[name=calificacion]').forEach(r => {
-                                        r.checked = (r.value === btn.dataset.calificacion);
-                                    });
-                                });
-                            </script>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -169,4 +120,55 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de reseña -->
+<div class="modal fade" id="modalResena" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" id="formResena" class="modal-content rounded-4 border-0">
+            {% csrf_token %}
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Reseña: <span id="resenaPaquete"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label fw-semibold">Calificación</label>
+                <div class="estrellas mb-3">
+                    {% for i in "54321" %}
+                        <input type="radio" name="calificacion" id="estrella{{ i }}" value="{{ i }}" required>
+                        <label for="estrella{{ i }}">★</label>
+                    {% endfor %}
+                </div>
+                <label for="resenaComentario" class="form-label fw-semibold">Tu experiencia</label>
+                <textarea name="comentario" id="resenaComentario" class="form-control" rows="4" required></textarea>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-info fw-semibold">Guardar reseña</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .estrellas { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 4px; position: relative; }
+    .estrellas input { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+    .estrellas label { font-size: 2rem; color: #ccc; cursor: pointer; }
+    .estrellas input:checked ~ label,
+    .estrellas label:hover,
+    .estrellas label:hover ~ label { color: #ffc107; }
+</style>
+
+<script>
+    const urlResena = "{% url 'catalogo:guardar_resena' 0 %}";
+
+    document.getElementById('modalResena').addEventListener('show.bs.modal', function (e) {
+        const btn = e.relatedTarget;
+        document.getElementById('formResena').action = urlResena.replace('/0/', `/${btn.dataset.paqueteId}/`);
+        document.getElementById('resenaPaquete').textContent = btn.dataset.paqueteNombre;
+        document.getElementById('resenaComentario').value = btn.dataset.comentario || '';
+        document.querySelectorAll('#formResena input[name=calificacion]').forEach(r => {
+            r.checked = (r.value === btn.dataset.calificacion);
+        });
+    });
+</script>
 {% endblock %}

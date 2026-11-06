@@ -14,5 +14,5 @@ urlpatterns = [
     path('gestion-itinerario/nuevo/', views.itinerario_crear, name='itinerario_crear'),
     path('gestion-itinerario/editar/<int:id>/', views.itinerario_editar, name='itinerario_editar'),
     path('gestion-itinerario/eliminar/<int:id>/', views.itinerario_eliminar, name='itinerario_eliminar'),
-    path('paquete/resena/<int:id>', views.guardar_resena, name='guardar_resena'),
+    path('paquete/<int:id>/resena/', views.guardar_resena, name='guardar_resena'),
 ]

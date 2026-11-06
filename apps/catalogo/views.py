@@ -6,8 +6,8 @@ from django.db.models import Q, Avg
 from django.utils.http import urlencode
 from django.views.decorators.http import require_POST
 
-from .models import Paquete, CategoriaDestino, Itinerario, Resena
-from .forms import PaqueteForm, ItinerarioForm
+from .models import Paquete, CategoriaDestino, Itinerario, Resena, Hotel, Vuelo
+from .forms import PaqueteForm, ItinerarioForm, HotelForm, VueloForm
 from apps.pedidos.models import Reserva
 from apps.usuarios.models import Usuario
 
@@ -237,3 +237,138 @@ def guardar_resena(request, id):
     )
     messages.success(request, "¡Gracias por tu reseña!")
     return redirect('usuarios:perfil')
+
+@admin_requerido
+def gestion_hotel(request):
+    query = request.GET.get('q', '').strip()
+    hoteles = Hotel.objects.all().prefetch_related('paquetes')
+
+    if query:
+        hoteles = hoteles.filter(
+            Q(nombre__icontains=query) |
+            Q(ciudad__icontains=query) |
+            Q(paquetes__nombre__icontains=query)
+        ).distinct()
+
+    paginador = Paginator(hoteles.order_by('nombre'), 10)
+    pagina = paginador.get_page(request.GET.get('page'))
+
+    return render(request, 'catalogo/gestion_hotel.html', {'hoteles': pagina, 'query': query})
+
+@admin_requerido
+def hotel_crear(request):
+    if request.method == 'POST':
+        form = HotelForm(request.POST)
+        if form.is_valid():
+            hotel = form.save()
+            messages.success(request, f"Hotel '{hotel.nombre}' agregado exitosamente.")
+            return redirect('catalogo:gestion_hotel')
+    else:
+        form = HotelForm()
+
+    return render(request, 'catalogo/hotel_form.html', {
+        'form': form,
+        'titulo_accion': 'Agregar Hotel',
+        'boton_texto': 'Guardar Hotel',
+    })
+
+@admin_requerido
+def hotel_editar(request, id):
+    hotel = get_object_or_404(Hotel, id=id)
+    if request.method == 'POST':
+        form = HotelForm(request.POST, instance=hotel)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Hotel '{hotel.nombre}' actualizado.")
+            return redirect('catalogo:gestion_hotel')
+    else:
+        form = HotelForm(instance=hotel)
+
+    return render(request, 'catalogo/hotel_form.html', {
+        'form': form,
+        'hotel': hotel,
+        'titulo_accion': 'Editar Hotel',
+        'boton_texto': 'Actualizar Hotel',
+    })
+
+@admin_requerido
+def hotel_eliminar(request, id):
+    hotel = get_object_or_404(Hotel, id=id)
+    if request.method == 'POST':
+        nombre = hotel.nombre
+        hotel.delete()
+        messages.success(request, f"Hotel '{nombre}' eliminado.")
+        return redirect('catalogo:gestion_hotel')
+
+    return render(request, 'catalogo/hotel_confirmar_eliminar.html', {
+        'hotel': hotel,
+        'paquetes_asociados': hotel.paquetes.all(),
+    })
+
+@admin_requerido
+def gestion_vuelo(request):
+    query = request.GET.get('q', '').strip()
+    vuelos = Vuelo.objects.all().prefetch_related('paquetes')
+
+    if query:
+        vuelos = vuelos.filter(
+            Q(aerolinea__icontains=query) |
+            Q(ciudad_origen__icontains=query) |
+            Q(ciudad_destino__icontains=query) |
+            Q(paquetes__nombre__icontains=query)
+        ).distinct()
+
+    paginador = Paginator(vuelos.order_by('fecha_salida', 'hora_salida'), 10)
+    pagina = paginador.get_page(request.GET.get('page'))
+
+    return render(request, 'catalogo/gestion_vuelo.html', {'vuelos': pagina, 'query': query})
+
+@admin_requerido
+def vuelo_crear(request):
+    if request.method == 'POST':
+        form = VueloForm(request.POST)
+        if form.is_valid():
+            vuelo = form.save()
+            messages.success(request, f"Vuelo '{vuelo}' agregado exitosamente.")
+            return redirect('catalogo:gestion_vuelo')
+    else:
+        form = VueloForm()
+
+    return render(request, 'catalogo/vuelo_form.html', {
+        'form': form,
+        'titulo_accion': 'Agregar Vuelo',
+        'boton_texto': 'Guardar Vuelo',
+    })
+
+@admin_requerido
+def vuelo_editar(request, id):
+    vuelo = get_object_or_404(Vuelo, id=id)
+    if request.method == 'POST':
+        form = VueloForm(request.POST, instance=vuelo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Vuelo '{vuelo}' actualizado.")
+            return redirect('catalogo:gestion_vuelo')
+    else:
+        form = VueloForm(instance=vuelo)
+
+    return render(request, 'catalogo/vuelo_form.html', {
+        'form': form,
+        'vuelo': vuelo,
+        'titulo_accion': 'Editar Vuelo',
+        'boton_texto': 'Actualizar Vuelo',
+    })
+
+@admin_requerido
+def vuelo_eliminar(request, id):
+    vuelo = get_object_or_404(Vuelo, id=id)
+    if request.method == 'POST':
+        descripcion = str(vuelo)
+        vuelo.delete()
+        messages.success(request, f"Vuelo '{descripcion}' eliminado.")
+        return redirect('catalogo:gestion_vuelo')
+
+    return render(request, 'catalogo/vuelo_confirmar_eliminar.html', {
+        'vuelo': vuelo,
+        'paquetes_asociados': vuelo.paquetes.all(),
+    })
