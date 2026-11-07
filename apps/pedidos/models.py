@@ -6,6 +6,7 @@ class Reserva(models.Model):
     fecha = models.DateField(auto_now_add=True)
     estado = models.CharField(max_length=50)
     precio_total = models.FloatField()
+    actividades = models.ManyToManyField('catalogo.Itinerario', blank=True, related_name='reservas')
 
     def __str__(self):
         return f"Reserva {self.pk} - {self.usuario.nombre}"

@@ -52,6 +52,14 @@
                                 <a href="{% url 'catalogo:detalle' item.id %}" class="fw-bold text-dark text-decoration-none">
                                     {{ item.nombre }}
                                 </a>
+                                {% if item.actividades %}
+                                <div class="small text-muted mt-2">Itinerario:</div>
+                                <ul class="list-unstyled small text-muted mb-0">
+                                    {% for a in item.actividades %}
+                                    <li><i class="bi bi-check2 text-info me-1"></i>{{ a.nombre }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
                             </td>
                             <td class="text-muted">${{ item.precio|floatformat:0 }}</td>
                             <td class="text-center">

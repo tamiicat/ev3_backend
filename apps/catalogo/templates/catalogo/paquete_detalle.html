@@ -63,9 +63,12 @@
 
             <div class="border-top pt-4 mt-auto">
                 {% if paquete.cupos_disponibles > 0 %}
-                    <a href="{% url 'pedidos:agregar' paquete.id %}" class="btn btn-info btn-lg w-100 py-3 fw-bold text-white shadow-sm">
-                        Reservar (Quedan {{ paquete.cupos_disponibles }} cupos)
-                    </a>
+                    <form id="form-reserva" method="get" action="{% url 'pedidos:agregar' paquete.id %}">
+                        <div id="aviso-actividades" class="small text-muted mb-2 text-center"></div>
+                        <button type="submit" id="btn-reservar" class="btn btn-info btn-lg w-100 py-3 fw-bold text-white shadow-sm">
+                            Reservar (Quedan {{ paquete.cupos_disponibles }} cupos)
+                        </button>
+                    </form>
                 {% else %}
                     <button class="btn btn-secondary btn-lg w-100 py-3" disabled>Sin Cupos Disponibles</button>
                 {% endif %}
@@ -77,17 +80,34 @@
 <div class="row g-4 mb-5">
     <div class="col-md-4">
         <div class="card h-100 border-0 shadow-sm">
-            <div class="card-header bg-dark text-white fw-bold"><i class="bi bi-journal-text me-2"></i>Itinerario</div>
-            <ul class="list-group list-group-flush">
+            <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-journal-text me-2"></i>Itinerario</span>
+                <span class="badge bg-light text-dark" id="contador-actividades">0 / 5</span>
+            </div>
+            <ul class="list-group list-group-flush" id="lista-actividades">
                 {% for itinerario in paquete.itinerarios.all %}
-                <li class="list-group-item">
-                    <strong>{{ itinerario.dia|date:"d M" }} - {{ itinerario.horario|time:"H:i" }}</strong><br>
-                    {{ itinerario.actividad }}: <span class="text-muted small">{{ itinerario.descripcion }}</span>
+                <li class="list-group-item p-0">
+                    <label class="d-flex gap-3 p-3 mb-0 w-100" for="act-{{ itinerario.id }}" style="cursor: pointer;">
+                        {% if paquete.cupos_disponibles > 0 %}
+                        <input class="form-check-input flex-shrink-0 mt-1 chk-actividad" type="checkbox"
+                            id="act-{{ itinerario.id }}" name="actividades" value="{{ itinerario.id }}"
+                            form="form-reserva">
+                        {% endif %}
+                        <span>
+                            <strong>{{ itinerario.dia|date:"d M" }} - {{ itinerario.horario|time:"H:i" }}</strong><br>
+                            {{ itinerario.actividad }}: <span class="text-muted small">{{ itinerario.descripcion }}</span>
+                        </span>
+                    </label>
                 </li>
                 {% empty %}
                 <li class="list-group-item text-muted">Itinerario en construcción.</li>
                 {% endfor %}
             </ul>
+            {% if paquete.cupos_disponibles > 0 and paquete.itinerarios.exists %}
+            <div class="card-footer bg-white small text-muted">
+                Elige entre 3 y 5 actividades para tu paquete.
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -126,37 +146,61 @@
 </div>
 
 <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5 bg-white">
-    <h3 class="h4 fw-bold mb-4"><i class="bi bi-star-fill text-warning me-2"></i>Reseñas de Pasajeros</h3>
+    <h3 class="h4 fw-bold mb-4">
+        <i class="bi bi-star-fill text-info me-2"></i>Reseñas de Pasajeros
+        {% if promedio %}
+            <small class="text-muted fs-6">{{ promedio|floatformat:1 }}/5 ({{ resenas|length }})</small>
+        {% endif %}
+    </h3>
+
     {% for resena in paquete.resenas.all %}
         <div class="mb-3 border-bottom pb-3">
             <div class="d-flex align-items-center mb-2">
                 <div class="fw-bold me-3">{{ resena.usuario.nombre }} {{ resena.usuario.apellido }}</div>
-                <div class="text-warning">
-                    {{ resena.calificacion }} / 5 <i class="bi bi-star-fill"></i>
+                <div class="text-info">
+                    {% for i in "12345" %}{% if forloop.counter <= resena.calificacion %}★{% else %}☆{% endif %}{% endfor %}
                 </div>
                 <small class="text-muted ms-auto">{{ resena.fecha_publicacion|date:"d M Y" }}</small>
             </div>
             <p class="mb-0 text-secondary">{{ resena.comentario }}</p>
         </div>
     {% empty %}
-        <p class="text-muted">Aún no hay reseñas para este paquete turístico. ¡Sé el primero en viajar y comentarnos tu experiencia!</p>
-        <h4 class="fw-bold">
-            <i class="bi bi-star-fill text-warning me-2"></i>Reseñas de Pasajeros
-            {% if promedio %}
-                <small class="text-muted fs-6">{{ promedio|floatformat:1 }}/5 ({{ resenas|length }})</small>
-            {% endif %}
-        </h4>
-
-        {% for r in resenas %}
-            <div class="border-bottom py-3">
-                <strong>{{ r.usuario.nombre }}</strong>
-                <span class="text-warning ms-2">{% for i in "12345" %}{% if forloop.counter <= r.calificacion %}★{% else %}☆{% endif %}{% endfor %}</span>
-                <small class="text-muted ms-2">{{ r.fecha_publicacion|date:"d/m/Y" }}</small>
-                <p class="mb-0 mt-1">{{ r.comentario }}</p>
-            </div>
-        {% empty %}
-            <p class="text-muted">Aún no hay reseñas para este paquete turístico. ¡Sé el primero en viajar y comentarnos tu experiencia!</p>
-        {% endfor %}
+        <p class="text-muted mb-0">Aún no hay reseñas para este paquete turístico. ¡Sé el primero en viajar y comentarnos tu experiencia!</p>
     {% endfor %}
 </div>
+
+<script>
+(function () {
+    var MAX = 5, MIN_DESEADO = 3;
+    var checks = document.querySelectorAll('.chk-actividad');
+    var boton = document.getElementById('btn-reservar');
+    var aviso = document.getElementById('aviso-actividades');
+    var contador = document.getElementById('contador-actividades');
+    if (!boton) return;                       
+    if (!checks.length) return;               
+
+    var MIN = Math.min(MIN_DESEADO, checks.length);
+
+    function actualizar() {
+        var marcadas = 0;
+        checks.forEach(function (c) { if (c.checked) marcadas++; });
+
+        checks.forEach(function (c) { c.disabled = !c.checked && marcadas >= MAX; });
+
+        contador.textContent = marcadas + ' / ' + MAX;
+        boton.disabled = marcadas < MIN || marcadas > MAX;
+
+        if (marcadas < MIN) {
+            aviso.textContent = 'Selecciona ' + (MIN - marcadas) + ' actividad(es) más para reservar.';
+        } else if (marcadas < MAX) {
+            aviso.textContent = 'Puedes añadir ' + (MAX - marcadas) + ' más.';
+        } else {
+            aviso.textContent = 'Alcanzaste el máximo de ' + MAX + ' actividades.';
+        }
+    }
+
+    checks.forEach(function (c) { c.addEventListener('change', actualizar); });
+    actualizar();
+})();
+</script>
 {% endblock %}

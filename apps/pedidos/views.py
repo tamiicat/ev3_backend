@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from apps.catalogo.models import Paquete
+from apps.catalogo.models import Paquete, Itinerario
 from apps.usuarios.models import Usuario
 from apps.pedidos.models import Reserva, Pago
 from apps.usuarios.views import login_requerido_custom
+
+MIN_ACTIVIDADES = 3
+MAX_ACTIVIDADES = 5
 
 def _obtener_carrito(request):
     return request.session.setdefault('carrito', {})
@@ -26,6 +29,37 @@ def carrito_agregar(request, id):
     carrito = _obtener_carrito(request)
     str_id = str(paquete.id)
 
+    # Acepta GET (formulario actual) o POST (si luego lo cambias a POST)
+    datos = request.POST if request.method == 'POST' else request.GET
+
+    # --- Validación de actividades: mínimo 3, máximo 5 ---
+    itinerarios = paquete.itinerarios.all()
+    total_disponibles = itinerarios.count()
+    actividades_carrito = []
+
+    if str_id in carrito and not datos.getlist('actividades'):
+        # Botón "+" del carrito: suma un pasajero y conserva las actividades ya elegidas
+        actividades_carrito = carrito[str_id].get('actividades', [])
+    elif total_disponibles > 0:
+        # Si el paquete tiene menos de 3 actividades, el mínimo es el total que existe
+        minimo = min(MIN_ACTIVIDADES, total_disponibles)
+        ids_elegidos = {int(x) for x in datos.getlist('actividades') if x.isdigit()}
+
+        if not (minimo <= len(ids_elegidos) <= MAX_ACTIVIDADES):
+            messages.warning(
+                request,
+                f"Elige entre {minimo} y {MAX_ACTIVIDADES} actividades para reservar '{paquete.nombre}'."
+            )
+            return redirect('catalogo:detalle', paquete.id)   # <- ajusta al nombre real de tu URL de detalle
+
+        elegidas = itinerarios.filter(id__in=ids_elegidos).order_by('dia', 'horario')
+        if elegidas.count() != len(ids_elegidos):
+            # llegó algún id que no pertenece a este paquete
+            messages.error(request, "La selección de actividades no es válida.")
+            return redirect('catalogo:detalle', paquete.id)
+
+        actividades_carrito = [{'id': a.id, 'nombre': a.actividad} for a in elegidas]
+
     cantidad_actual = carrito.get(str_id, {}).get('cantidad', 0)
     nueva_cantidad = cantidad_actual + 1
 
@@ -39,6 +73,7 @@ def carrito_agregar(request, id):
         'precio': int(paquete.precio_paquete),
         'cantidad': nueva_cantidad,
         'subtotal': int(paquete.precio_paquete) * nueva_cantidad,
+        'actividades': actividades_carrito,
     }
 
     request.session.modified = True
@@ -80,7 +115,7 @@ def checkout_simulado(request):
             return redirect('catalogo:lista')
 
         usuario = get_object_or_404(Usuario, id=request.session['usuario_id'])
-        
+
         subtotal = sum(item['subtotal'] for item in carrito.values())
         iva = int(subtotal * 0.19)
         total = subtotal + iva
@@ -97,6 +132,13 @@ def checkout_simulado(request):
                 estado='Pagada',
                 precio_total=valor_con_iva
             )
+
+            # Guarda las actividades elegidas (solo las que pertenecen al paquete)
+            ids_actividades = [a['id'] for a in item.get('actividades', [])]
+            if ids_actividades:
+                reserva.actividades.set(
+                    Itinerario.objects.filter(paquete=paquete, id__in=ids_actividades)
+                )
 
             Pago.objects.create(
                 reserva=reserva,
@@ -119,5 +161,5 @@ def checkout_simulado(request):
             'total': total,
             'orden_id': f"RES-{usuario.id}-2026",
         })
-        
+
     return redirect('pedidos:ver')
