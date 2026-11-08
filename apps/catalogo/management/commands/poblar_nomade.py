@@ -23,8 +23,8 @@ PAQUETES = [
         "fin": "2027-01-22",
         "color": (255, 140, 0),
         "hoteles": [
-            {"nombre": "Copacabana Palace", "ciudad": "Río de Janeiro", "direccion": "Av. Atlántica 1702", "categoria": "5 Estrellas", "habitacion": 101},
-            {"nombre": "Fasano Rio de Janeiro", "ciudad": "Río de Janeiro", "direccion": "Av. Vieira Souto 80", "categoria": "5 Estrellas", "habitacion": 312},
+            {"nombre": "Copacabana Palace", "ciudad": "Río de Janeiro", "direccion": "Av. Atlántica 1702", "categoria": 5, "habitacion": 101},
+            {"nombre": "Fasano Rio de Janeiro", "ciudad": "Río de Janeiro", "direccion": "Av. Vieira Souto 80", "categoria": 5, "habitacion": 312},
         ],
         "destino_vuelo": "Río de Janeiro",
         "vuelos": [
@@ -53,8 +53,8 @@ PAQUETES = [
         "fin": "2027-02-17",
         "color": (139, 90, 43),
         "hoteles": [
-            {"nombre": "Inca Imperial", "ciudad": "Cusco", "direccion": "Calle Ruinas 465", "categoria": "3 Estrellas", "habitacion": 205},
-            {"nombre": "Casa Andina Premium Cusco", "ciudad": "Cusco", "direccion": "Plaza Nazarenas 211", "categoria": "5 Estrellas", "habitacion": 118},
+            {"nombre": "Inca Imperial", "ciudad": "Cusco", "direccion": "Calle Ruinas 465", "categoria": 3, "habitacion": 205},
+            {"nombre": "Casa Andina Premium Cusco", "ciudad": "Cusco", "direccion": "Plaza Nazarenas 211", "categoria": 5, "habitacion": 118},
         ],
         "destino_vuelo": "Cusco",
         "vuelos": [
@@ -83,8 +83,8 @@ PAQUETES = [
         "fin": "2027-04-12",
         "color": (70, 90, 160),
         "hoteles": [
-            {"nombre": "Hôtel Lutetia", "ciudad": "París", "direccion": "45 Boulevard Raspail", "categoria": "5 Estrellas", "habitacion": 402},
-            {"nombre": "Hôtel Saint-Michel", "ciudad": "París", "direccion": "17 Rue Gay-Lussac", "categoria": "4 Estrellas", "habitacion": 215},
+            {"nombre": "Hôtel Lutetia", "ciudad": "París", "direccion": "45 Boulevard Raspail", "categoria": 5, "habitacion": 402},
+            {"nombre": "Hôtel Saint-Michel", "ciudad": "París", "direccion": "17 Rue Gay-Lussac", "categoria": 4, "habitacion": 215},
         ],
         "destino_vuelo": "París",
         "vuelos": [
@@ -113,8 +113,8 @@ PAQUETES = [
         "fin": "2027-05-17",
         "color": (200, 40, 60),
         "hoteles": [
-            {"nombre": "Park Hyatt Tokyo", "ciudad": "Tokio", "direccion": "3-7-1-2 Nishi-Shinjuku, Shinjuku", "categoria": "5 Estrellas", "habitacion": 501},
-            {"nombre": "Hotel Gracery Shinjuku", "ciudad": "Tokio", "direccion": "1-19-1 Kabukicho, Shinjuku", "categoria": "4 Estrellas", "habitacion": 320},
+            {"nombre": "Park Hyatt Tokyo", "ciudad": "Tokio", "direccion": "3-7-1-2 Nishi-Shinjuku, Shinjuku", "categoria": 5, "habitacion": 501},
+            {"nombre": "Hotel Gracery Shinjuku", "ciudad": "Tokio", "direccion": "1-19-1 Kabukicho, Shinjuku", "categoria": 4, "habitacion": 320},
         ],
         "destino_vuelo": "Tokio",
         "vuelos": [
@@ -179,7 +179,7 @@ class Command(BaseCommand):
                 rol="administrador",
             )
         # mensaje de creación exitosa de admin
-        self.stdout.write(self.style.SUCCESS("✓ Usuario administrador creado"))
+        self.stdout.write(self.style.SUCCESS("✓ Usuario administrador creado."))
 
         # CATEGORÍAS - DESTINOS
         nombres_continentes = [
