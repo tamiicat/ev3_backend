@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Paquetes | Nomade{% endblock %}
+
+{% block content %}
+<!-- encabezado -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-airplane text-info me-2"></i>Gestión de Paquetes Turísticos</h1>
+        <p class="text-muted small mb-0">Panel para administrar el catálogo de viajes, cupos y precios.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {# etiqueta 'url'  que resuelve la ruta hacia la vista de creación de un nuevo paquete #}
+        <a href="{% url 'catalogo:crear' %}" class="btn btn-info fw-semibold text-dark">
+            <i class="bi bi-plus-circle me-1"></i>Ingresar Nuevo Paquete
+        </a>
+    </div>
+</div>
+
+<!-- filtro de búqueda -->
+<div class="card border shadow-sm p-3 mb-4 rounded-3 bg-white">
+    {# formulario GET, los parámetros enviados se adjuntan a la URL para permitir filtros que se puedan compartir o recargar #}
+    <form method="get" class="row g-2">
+        <div class="col-md-10">
+            {# el value="{{ query }}" asegura que la palabra buscada no desaparezca del input tras enviar el formulario #}
+            <input type="text" name="q" class="form-control" placeholder="Buscar por nombre, destino o descripción..." value="{{ query }}">
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filtrar</button>
+        </div>
+    </form>
+</div>
+
+<!-- tabla principal de inventario de paquetes -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <!-- definición de Columnas -->
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 70px;">ID</th>
+                    <th scope="col" style="width: 80px;">Foto</th>
+                    <th scope="col">Nombre del Paquete</th>
+                    <th scope="col">Categoría</th>
+                    <th scope="col">Fechas de Viaje</th>
+                    <th scope="col">Precio</th>
+                    <th scope="col">Cupos</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col" class="text-end" style="width: 150px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {# Bucle de Django para recorrer los objetos 'paquete' de la lista enviada por la vista #}
+                {% for paquete in paquetes %}
+                <tr>
+                    <!-- id numérico -->
+                    <td class="fw-bold text-muted">#{{ paquete.id }}</td>
+                    
+                    <!-- imagen del paquete -->
+                    <td>
+                        {# valida si la base de datos registra una imagen subida para el paquete #}
+                        {% if paquete.imagen %}
+                            {# .url obtiene la ruta absoluta en el servidor de archivos (media) #}
+                            <img src="{{ paquete.imagen.url }}" alt="{{ paquete.nombre }}" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;">
+                        {% else %}
+                            {# renderiza un ícono genérico si no hay imagen (falso) #}
+                            <div class="bg-light rounded border text-center d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="bi bi-image text-muted"></i>
+                            </div>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- nombre con enlace al detalle público -->
+                    <td>
+                        <a href="{% url 'catalogo:detalle' paquete.id %}" class="fw-bold text-dark text-decoration-none">
+                            {{ paquete.nombre }}
+                        </a>
+                    </td>
+                    
+                    <!-- categoría (evaluación de seguridad por si es nula) -->
+                    <td>
+                        {% if paquete.categoria %}
+                            <span class="badge bg-light text-dark border">{{ paquete.categoria.nombre }}</span>
+                        {% else %}
+                            <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- fechas de viaje (con filtros de transformación) -->
+                    <td class="text-secondary small">
+                        {# |date procesa el objeto DateField de Python a un string legible Día/Mes/Año #}
+                        {{ paquete.fecha_inicio|date:"d/m/Y" }} - {{ paquete.fecha_fin|date:"d/m/Y" }}
+                    </td>
+                    
+                    <!-- precio formateado -->
+                    <td class="fw-bold text-dark">
+                        {# floatformat:0 recorta ceros decimales del FloatField para presentar números cerrados #}
+                        ${{ paquete.precio_paquete|floatformat:0 }}
+                    </td>
+                    
+                    <!-- condicional de cupos disponibles -->
+                    <td>
+                        {# valida si hay lugares suficientes #}
+                        {% if paquete.cupos_disponibles > 0 %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">{{ paquete.cupos_disponibles }} disp.</span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Agotado</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- estado lógico del paquete (bool) -->
+                    <td>
+                        {% if paquete.activo %}
+                            <span class="badge bg-success">Activo</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- botonera de acciones -->
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            {# direcciona a la vista de edición utilizando el parámetro de id #}
+                            <a href="{% url 'catalogo:editar' paquete.id %}" class="btn btn-outline-info" title="Editar Paquete">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'catalogo:eliminar' paquete.id %}" class="btn btn-outline-danger" title="Eliminar Paquete">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                        No hay paquetes turísticos registrados en el inventario.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- bloque de paginación interactiva -->
+    {# evalúa el paginador para ver si los ítems requieren dividirse en múltiples páginas #}
+    {% if paquetes.has_other_pages %}
+    <div class="card-footer bg-white py-3">
+        <ul class="pagination pagination-sm justify-content-center mb-0">
+            
+            <!-- botón 'Anterior' -->
+            {% if paquetes.has_previous %}
+                <li class="page-item">
+                    {# agrega el número previo a la URL. Si el usuario había aplicado una búsqueda (query), concatena ese valor en la paginación #}
+                    <a class="page-link text-dark" href="?page={{ paquetes.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a>
+                </li>
+            {% endif %}
+            
+            <!-- renderizado de números por cada página generada -->
+            {% for i in paquetes.paginator.page_range %}
+                {# si el número evaluado coincide con la página activa, aplica colores oscuros para resaltarlo #}
+                <li class="page-item {% if paquetes.number == i %}active{% endif %}">
+                    <a class="page-link {% if paquetes.number == i %}bg-dark border-dark{% else %}text-dark{% endif %}" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}">{{ i }}</a>
+                </li>
+            {% endfor %}
+            
+            <!-- botón 'Siguiente' -->
+            {% if paquetes.has_next %}
+                <li class="page-item">
+                    <a class="page-link text-dark" href="?page={{ paquetes.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Siguiente</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

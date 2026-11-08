@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Eliminación | Nomade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger shadow-sm rounded-4 overflow-hidden bg-white">
+            
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="card-title mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Eliminación de Paquete</h5>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 text-center">
+                <!-- icono visual de papelera en color rojo para enfatizar la advertencia -->
+                <i class="bi bi-trash3-fill text-danger display-3 mb-3"></i>
+                <h4 class="fw-bold mb-2">¿Estás seguro de que deseas eliminar este paquete turístico?</h4>
+                <p class="text-muted mb-4">Esta acción no se puede deshacer y retirará el registro permanentemente de la base de datos:</p>
+
+                <!-- caja de resumen con los datos exactos del registro que se va a borrar -->
+                <div class="p-3 bg-light rounded-3 border mb-4 text-start">
+                    <ul class="list-unstyled mb-0">
+                        {# inyecta el id del paquete #}
+                        <li><strong>ID:</strong> #{{ paquete.id }}</li>
+                        
+                        {# inyecta el nombre y la categoría relacionada del paquete turístico #}
+                        <li><strong>Nombre:</strong> {{ paquete.nombre }}</li>
+                        <li><strong>Categoría:</strong> {{ paquete.categoria.nombre }}</li>
+                        
+                        {# formatea las fechas de inicio y fin aplicando el filtro de fecha de django #}
+                        <li><strong>Fechas de Viaje:</strong> {{ paquete.fecha_inicio|date:"d/m/Y" }} - {{ paquete.fecha_fin|date:"d/m/Y" }}</li>
+                        
+                        {# formatea el valor monetario eliminando decimales innecesarios con floatformat #}
+                        <li><strong>Precio:</strong> ${{ paquete.precio_paquete|floatformat:0 }}</li>
+                        
+                        {# muestra la cantidad de cupos disponibles actualmente #}
+                        <li><strong>Cupos Disponibles:</strong> {{ paquete.cupos_disponibles }} disp.</li>
+                    </ul>
+                </div>
+
+                <!-- formulario de confirmación por método post -->
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="d-flex justify-content-center gap-2">
+                        <!-- botón de cancelación que redirige de vuelta al panel de gestión sin alterar la base de datos -->
+                        <a href="{% url 'catalogo:gestion' %}" class="btn btn-outline-secondary px-4">
+                            Cancelar
+                        </a>
+                        
+                        <!-- botón de envío tipo submit que ejecuta la eliminación definitiva en la vista -->
+                        <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                            <i class="bi bi-trash-fill me-1"></i>Sí, Eliminar Definitivamente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

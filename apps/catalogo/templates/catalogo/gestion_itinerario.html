@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Itinerarios | Nomade{% endblock %}
+
+{% block content %}
+
+<!-- encabezado -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-journal-text text-info me-2"></i>Gestión de Itinerarios</h1>
+        <p class="text-muted small mb-0">Panel operativo para administrar las actividades de los paquetes turísticos.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {# utiliza la etiqueta 'url' para generar la ruta de creación de una nueva actividad en el itinerario #}
+        <a href="{% url 'catalogo:itinerario_crear' %}" class="btn btn-info fw-semibold text-dark">
+            <i class="bi bi-plus-circle me-1"></i>Agregar Actividad
+        </a>
+    </div>
+</div>
+
+<!-- barra de búsqueda -->
+<div class="card border shadow-sm p-3 mb-4 rounded-3 bg-white">
+    {# formulario configurado con método GET para enviar la búsqueda a través de la URL #}
+    <form method="get" class="row g-2">
+        <div class="col-md-10">
+            {# el atributo value="{{ query }}" mantiene el texto buscado visible en el input después de recargar la página #}
+            <input type="text" name="q" class="form-control" placeholder="Buscar por nombre de actividad o paquete..." value="{{ query }}">
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filtrar</button>
+        </div>
+    </form>
+</div>
+
+<!-- contenedor tabla de datos -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <!-- cabecera de la tabla -->
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 70px;">ID</th>
+                    <th scope="col">Paquete Asociado</th>
+                    <th scope="col">Actividad</th>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Horario</th>
+                    <th scope="col" class="text-end" style="width: 150px;">Acciones</th>
+                </tr>
+            </thead>
+            <!-- cuerpo de la tabla con generación dinámica -->
+            <tbody>
+                {# bucle que recorre el listado o QuerySet 'itinerarios' enviado desde el archivo views.py #}
+                {% for itinerario in itinerarios %}
+                <tr>
+                    {# id de la actividad #}
+                    <td class="fw-bold text-muted">#{{ itinerario.id }}</td>
+                    
+                    <!-- columna de relación (ForeignKey) -->
+                    <td>
+                        {# accede a los datos del Paquete padre a través de la relación de clave foránea (itinerario.paquete) #}
+                        {# genera un link dinámico del paqueteusando el ID del padre #}
+                        <a href="{% url 'catalogo:detalle' itinerario.paquete.id %}" class="text-dark text-decoration-none fw-semibold">
+                            {{ itinerario.paquete.nombre }}
+                        </a>
+                    </td>
+                    
+                    {# imprime el nombre de la actividad #}
+                    <td class="fw-bold">{{ itinerario.actividad }}</td>
+                    
+                    <!-- columnas de fehca y hora -->
+                    {# aplica el filtro date para mostrar la fecha en formato Día/Mes/Año #}
+                    <td>{{ itinerario.dia|date:"d/m/Y" }}</td>
+                    
+                    {# aplica el filtro time para mostrar el horario en formato de 24 horas y minutos #}
+                    <td>{{ itinerario.horario|time:"H:i" }}</td>
+                    
+                    <!-- columna de acciones -->
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            {# rutas dinámicas para la edición y eliminación pasando el id de la actividad (itinerario.id) #}
+                            <a href="{% url 'catalogo:itinerario_editar' itinerario.id %}" class="btn btn-outline-info" title="Editar Actividad">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'catalogo:itinerario_eliminar' itinerario.id %}" class="btn btn-outline-danger" title="Eliminar Actividad">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                
+                {# la instrucción 'empty' captura el estado donde la tabla de itinerarios esté vacía o la búsqueda no tenga resultados #}
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                        No hay actividades registradas en los itinerarios.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- controles de paginación -->
+    {# verifica si el QuerySet 'itinerarios' está paginado y tiene suficientes registros para múltiples páginas #}
+    {% if itinerarios.has_other_pages %}
+    <div class="card-footer bg-white py-3">
+        <ul class="pagination pagination-sm justify-content-center mb-0">
+            
+            <!-- botón de retroceso -->
+            {# solo se renderiza si el paginador indica que hay una página anterior #}
+            {% if itinerarios.has_previous %}
+                <li class="page-item">
+                    {# envía por GET el número de la página anterior y concatena la búsqueda 'q' si existe #}
+                    <a class="page-link text-dark" href="?page={{ itinerarios.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a>
+                </li>
+            {% endif %}
+            
+            <!-- botones numéricos -->
+            {# recorre el rango total de páginas #}
+            {% for i in itinerarios.paginator.page_range %}
+                {# agrega la clase visual 'active' de Bootstrap si la página evaluada en el ciclo coincide con la página actual #}
+                <li class="page-item {% if itinerarios.number == i %}active{% endif %}">
+                    <a class="page-link {% if itinerarios.number == i %}bg-dark border-dark{% else %}text-dark{% endif %}" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}">{{ i }}</a>
+                </li>
+            {% endfor %}
+            
+            <!-- botón de avance -->
+            {# solo se renderiza si el paginador indica que hay una página siguiente #}
+            {% if itinerarios.has_next %}
+                <li class="page-item">
+                    <a class="page-link text-dark" href="?page={{ itinerarios.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Siguiente</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
