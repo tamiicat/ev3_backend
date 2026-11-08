@@ -37,6 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'apps.catalogo',
+    'apps.core',
+    'apps.pedidos',
+    'apps.usuarios',
 ]
 
 MIDDLEWARE = [
@@ -54,13 +58,14 @@ ROOT_URLCONF = 'nomade.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+            'apps.pedidos.context_processors.carrito_context',
             ],
         },
     },
@@ -102,13 +107,30 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# zona horaria
+LANGUAGE_CODE = 'es-cl'
+TIME_ZONE = 'America/Santiago'
 
-TIME_ZONE = 'UTC'
+# static y media
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-USE_I18N = True
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
-USE_TZ = True
+#urls
+LOGIN_URL = 'usuarios:login'
+LOGIN_REDIRECT_URL = 'catalogo:lista'
+LOGOUT_REDIRECT_URL = 'core:inicio'
+
+from django.contrib import messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.INFO: 'info',
+}
 
 
 # Static files (CSS, JavaScript, Images)
