@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Eliminación | Nomade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <!-- card de advertencia -->
+        <div class="card border-danger shadow-sm rounded-4 overflow-hidden bg-white">
+            
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="card-title mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Eliminación de Vuelo</h5>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 text-center">
+                <!-- icono visual de papelera en color rojo para enfatizar el peligro de la acción -->
+                <i class="bi bi-trash3-fill text-danger display-3 mb-3"></i>
+                <h4 class="fw-bold mb-2">¿Estás seguro de que deseas eliminar este vuelo?</h4>
+                <p class="text-muted mb-4">Esta acción no se puede deshacer y retirará el vuelo del sistema permanentemente.</p>
+
+                <!-- caja de resumen con los datos exactos del vuelo que se va a eliminar -->
+                <div class="p-3 bg-light rounded-3 border mb-4 text-start">
+                    <ul class="list-unstyled mb-0">
+                        {# inyecta el nombre de la aerolínea #}
+                        <li><strong>Aerolínea:</strong> {{ vuelo.aerolinea }}</li>
+                        
+                        {# inyecta las ciudades de origen y destino conectadas por una flecha tipográfica #}
+                        <li><strong>Ruta:</strong> {{ vuelo.ciudad_origen }} &rarr; {{ vuelo.ciudad_destino }}</li>
+                        
+                        {# formatea la fecha y hora de salida utilizando los filtros de fecha y hora de django #}
+                        <li><strong>Salida:</strong> {{ vuelo.fecha_salida|date:"d/m/Y" }} {{ vuelo.hora_salida|time:"H:i" }}</li>
+                        
+                        {# formatea la fecha y hora de llegada utilizando los filtros correspondientes #}
+                        <li><strong>Llegada:</strong> {{ vuelo.fecha_llegada|date:"d/m/Y" }} {{ vuelo.hora_llegada|time:"H:i" }}</li>
+                    </ul>
+                </div>
+
+                <!-- bloque condicional para evaluar si este vuelo está vinculado a paquetes turísticos -->
+                {% if paquetes_asociados %}
+                <div class="alert alert-warning text-start small">
+                    <i class="bi bi-info-circle me-1"></i>Se retirará de los siguientes paquetes:
+                    <ul class="mb-0 mt-1">
+                        {# bucle iterativo que enlista cada paquete asociado que se verá afectado por la eliminación #}
+                        {% for p in paquetes_asociados %}<li>{{ p.nombre }}</li>{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- formulario de confirmación con el método post para proteger la operación -->
+                <form method="post">
+                    {# token de seguridad obligatorio de django (csrf) para prevenir solicitudes maliciosas externos #}
+                    {% csrf_token %}
+                    
+                    <div class="d-flex justify-content-center gap-2">
+                        <!-- botón de cancelación que redirige de vuelta al panel de gestión de vuelos sin realizar cambios -->
+                        <a href="{% url 'catalogo:gestion_vuelo' %}" class="btn btn-outline-secondary px-4">
+                            Cancelar
+                        </a>
+                        
+                        <!-- botón de envío tipo submit que ejecuta la eliminación definitiva del registro en la vista -->
+                        <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                            <i class="bi bi-trash-fill me-1"></i>Sí, Eliminar Definitivamente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

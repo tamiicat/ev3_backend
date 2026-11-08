@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Vuelos | Nomade{% endblock %}
+
+{% block content %}
+<!-- encabezado y boton de crear vuelo -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-airplane text-info me-2"></i>Gestión de Vuelos</h1>
+        <p class="text-muted small mb-0">Panel operativo para administrar los vuelos incluidos en los paquetes turísticos.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {# genera dinámicamente la ruta a la vista de creación utilizando el namespace 'catalogo' y el name 'vuelo_crear' #}
+        <a href="{% url 'catalogo:vuelo_crear' %}" class="btn btn-info fw-semibold">
+            <i class="bi bi-plus-circle me-1"></i>Agregar Vuelo
+        </a>
+    </div>
+</div>
+
+<!-- barra de búsqueda -->
+<div class="card border shadow-sm p-3 mb-4 rounded-3 bg-white">
+    {# formulario con método GET, los parámetros se envían por la URL para facilitar el filtrado en la vista #}
+    <form method="get" class="row g-2">
+        <div class="col-md-10">
+            {# el atributo value="{{ query }}" asegura que el texto buscado se mantenga visible en el input tras recargar la página #}
+            <input type="text" name="q" class="form-control" placeholder="Buscar por aerolínea, ciudad o paquete..." value="{{ query }}">
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filtrar</button>
+        </div>
+    </form>
+</div>
+
+<!-- tabla principal de vuelos -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <!-- cabecera de las columnas -->
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 70px;">ID</th>
+                    <th scope="col">Aerolínea</th>
+                    <th scope="col">Ruta</th>
+                    <th scope="col">Salida</th>
+                    <th scope="col">Llegada</th>
+                    <th scope="col">Paquetes Asociados</th>
+                    <th scope="col" class="text-end" style="width: 150px;">Acciones</th>
+                </tr>
+            </thead>
+            <!-- cuerpo de la tabla alimentado por el backend -->
+            <tbody>
+                {# recorre el queryset 'vuelos' enviado desde views.py #}
+                {% for vuelo in vuelos %}
+                <tr>
+                    <!-- atributos básicos del modelo Vuelo -->
+                    <td class="fw-bold text-muted">#{{ vuelo.id }}</td>
+                    <td class="fw-bold">{{ vuelo.aerolinea }}</td>
+                    
+                    <!-- concatenación de campos para mostrar la ruta -->
+                    <td>{{ vuelo.ciudad_origen }} <i class="bi bi-arrow-right mx-1"></i> {{ vuelo.ciudad_destino }}</td>
+                    
+                    <!-- fehcas y horas (aplicación de filtros de formato) -->
+                    <td>
+                        {# date transforma el DateField a formato Día/Mes/Año #}
+                        {{ vuelo.fecha_salida|date:"d/m/Y" }} 
+                        {# time transforma el TimeField a formato 24 horas y minutos #}
+                        <span class="text-muted">{{ vuelo.hora_salida|time:"H:i" }}</span>
+                    </td>
+                    <td>
+                        {{ vuelo.fecha_llegada|date:"d/m/Y" }} 
+                        <span class="text-muted">{{ vuelo.hora_llegada|time:"H:i" }}</span>
+                    </td>
+                    
+                    <!-- celda relacional (relación M a M inversa) -->
+                    <td>
+                        {# busca todos los paquetes turísticos que incluyen este vuelo en particular #}
+                        {% for p in vuelo.paquetes.all %}
+                            {# imprime una "etiqueta" (badge) linkeada al detalle público de cada paquete asociado #}
+                            <a href="{% url 'catalogo:detalle' p.id %}" class="badge text-bg-light border text-decoration-none text-dark me-1">{{ p.nombre }}</a>
+                        {% empty %}
+                            <span class="text-muted small">Sin paquetes</span>
+                        {% endfor %}
+                    </td>
+                    
+                    <!-- botonera de acciones -->
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            {# genera rutas dinámicas inyectando el ID único del vuelo actual para editar o eliminar #}
+                            <a href="{% url 'catalogo:vuelo_editar' vuelo.id %}" class="btn btn-outline-info" title="Editar Vuelo">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'catalogo:vuelo_eliminar' vuelo.id %}" class="btn btn-outline-danger" title="Eliminar Vuelo">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                        No hay vuelos registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- sistema de paginación -->
+    {# verifica si el objeto paginador detecta que se necesita más de una página #}
+    {% if vuelos.has_other_pages %}
+    <div class="card-footer bg-white py-3">
+        <ul class="pagination pagination-sm justify-content-center mb-0">
+            
+            <!-- botón 'Anterior' -->
+            {% if vuelos.has_previous %}
+                <li class="page-item">
+                    {# genera el link a la página previa, asegurando que no se pierda la búsqueda al cambiar de página #}
+                    <a class="page-link text-dark" href="?page={{ vuelos.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a>
+                </li>
+            {% endif %}
+            
+            <!-- números centrales de paginación -->
+            {# itera sobre el rango total #}
+            {% for i in vuelos.paginator.page_range %}
+                {# si el número generado coincide con la página donde está posicionado el usuario, lo cambia a activo #}
+                <li class="page-item {% if vuelos.number == i %}active{% endif %}">
+                    <a class="page-link {% if vuelos.number == i %}bg-dark border-dark{% else %}text-dark{% endif %}" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}">{{ i }}</a>
+                </li>
+            {% endfor %}
+            
+            <!-- botón 'Siguiente' -->
+            {% if vuelos.has_next %}
+                <li class="page-item">
+                    <a class="page-link text-dark" href="?page={{ vuelos.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Siguiente</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
