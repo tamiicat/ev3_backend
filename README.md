@@ -20,7 +20,7 @@ Antes de comenzar, asegúrate de tener instalado en tu sistema:
 Sigue estos pasos en tu terminal para ejecutar el proyecto de forma local sin problemas de dependencias:
 
 **1. Clonar el repositorio**\
-git clone https://github.com/tamiicat/ev3_backend_borrador
+git clone https://github.com/tamiicat/ev3_backend.git
 
 cd ev3_backend
 
