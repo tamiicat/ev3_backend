@@ -51,12 +51,12 @@ Abrir navegador web y visitar: http://127.0.0.1:8000/
 *   Correo Electrónico: admin@nomade.cl
 *   Password: admin
 
-**Super Usuarios**
+**Super Usuarios**\
 Usuario: vicente
 *   Correo Electrónico: in.cabrera1010@gmail.com
 *   Password: password1010
 
-Usuario:tamara
+Usuario: tamara
 *   Correo Electrónico: tamaraaguayo11@gmail.com
 *   Password: password987
 
