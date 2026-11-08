@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Hoteles | Nomade{% endblock %}
+
+{% block content %}
+<!-- encabezado de la sección -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-building text-info me-2"></i>Gestión de Hoteles</h1>
+        <p class="text-muted small mb-0">Panel operativo para administrar los hoteles incluidos en los paquetes turísticos.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {# genera la ruta segura hacia la vista de creación de hoteles usando su 'name' (hotel_crear) #}
+        <a href="{% url 'catalogo:hotel_crear' %}" class="btn btn-info fw-semibold text-dark">
+            <i class="bi bi-plus-circle me-1"></i>Agregar Hotel
+        </a>
+    </div>
+</div>
+
+<!-- barra de búsqueda -->
+<div class="card border shadow-sm p-3 mb-4 rounded-3 bg-white">
+    {# formulario con método GET, los parámetros de búsqueda se envían en la URL #}
+    <form method="get" class="row g-2">
+        <div class="col-md-10">
+            {# el atributo value mantiene en pantalla la búsqueda actual ('query') procesada por la vista #}
+            <input type="text" name="q" class="form-control" placeholder="Buscar por hotel, ciudad o paquete..." value="{{ query }}">
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filtrar</button>
+        </div>
+    </form>
+</div>
+
+<!-- tabla principal de inventario -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <!-- títulos de las columnas -->
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 70px;">ID</th>
+                    <th scope="col">Hotel</th>
+                    <th scope="col">Ubicación</th>
+                    <th scope="col">Categoría</th>
+                    <th scope="col">Hab.</th>
+                    <th scope="col">Paquetes Asociados</th>
+                    <th scope="col" class="text-end" style="width: 150px;">Acciones</th>
+                </tr>
+            </thead>
+            <!-- cuerpo de la tabla con datos dinámicos -->
+            <tbody>
+                {# Ciclo For: Itera sobre la lista paginada de objetos 'hotel' enviada desde el backend (views.py) #}
+                {% for hotel in hoteles %}
+                <tr>
+                    {# Inyecta los atributos directos del modelo Hotel #}
+                    <td class="fw-bold text-muted">#{{ hotel.id }}</td>
+                    <td class="fw-bold">{{ hotel.nombre }}</td>
+                    <td>{{ hotel.ciudad }}<br><span class="text-muted small">{{ hotel.direccion }}</span></td>
+                    <td>{{ hotel.categoria }}</td>
+                    <td>{{ hotel.habitacion }}</td>
+                    
+                    <!-- celda de paquetes asociados (Relación M a M / Foreign Key inversa) -->
+                    <td>
+                        {# obtiene todos los paquetes asociados a ESTE hotel en particular mediante el ORM #}
+                        {% for p in hotel.paquetes.all %}
+                            {# genera un enlace individual al detalle de cada paquete, pasando el id del paquete (p.id) #}
+                            <a href="{% url 'catalogo:detalle' p.id %}" class="badge text-bg-light border text-decoration-none text-dark me-1">{{ p.nombre }}</a>
+                        {# la etiqueta empty del sub-ciclo actúa si el hotel no tiene paquetes asignados #}
+                        {% empty %}
+                            <span class="text-muted small">Sin paquetes</span>
+                        {% endfor %}
+                    </td>
+                    
+                    <!-- celda de editar/eliminar -->
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            {# genera las URLs de edición y eliminación pasando el id del hotel (hotel.id) en la ruta #}
+                            <a href="{% url 'catalogo:hotel_editar' hotel.id %}" class="btn btn-outline-info" title="Editar Hotel">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'catalogo:hotel_eliminar' hotel.id %}" class="btn btn-outline-danger" title="Eliminar Hotel">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                
+                {# empty del ciclo principal actúa si no hya coincidencias de búsqueda #}
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                        No hay hoteles registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- sistema de paginación -->
+    {# valida si la cantidad de hoteles supera el límite por página para mostrar la barra inferior #}
+    {% if hoteles.has_other_pages %}
+    <div class="card-footer bg-white py-3">
+        <ul class="pagination pagination-sm justify-content-center mb-0">
+            
+            <!-- botón 'Anterior' -->
+            {# comprueba si existe una página previa antes de renderizar el botón #}
+            {% if hoteles.has_previous %}
+                <li class="page-item">
+                    {# href concatena el número de página anterior y mantiene el texto buscado (?q={{ query }}) si es que existe #}
+                    <a class="page-link text-dark" href="?page={{ hoteles.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a>
+                </li>
+            {% endif %}
+            
+            <!-- números de Página Intermedios -->
+            {# itera sobre el rango total de páginas disponibles #}
+            {% for i in hoteles.paginator.page_range %}
+                {# comprueba si el número de página evaluado es la página en la que está el usuario actualmentepara pasarla a 'active' #}
+                <li class="page-item {% if hoteles.number == i %}active{% endif %}">
+                    <a class="page-link {% if hoteles.number == i %}bg-dark border-dark{% else %}text-dark{% endif %}" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}">{{ i }}</a>
+                </li>
+            {% endfor %}
+            
+            <!-- botón 'Siguiente' -->
+            {# comprueba si hay más páginas hacia adelante antes de renderizar el botón #}
+            {% if hoteles.has_next %}
+                <li class="page-item">
+                    <a class="page-link text-dark" href="?page={{ hoteles.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Siguiente</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

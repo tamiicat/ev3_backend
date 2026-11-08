@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo_accion }} | Nomade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- breadcrumb -->
+        <!-- estructura de navegación para que el usuario sepa en qué sección se encuentra y pueda retroceder -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="{% url 'core:inicio' %}" class="text-decoration-none text-dark">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'catalogo:gestion_itinerario' %}" class="text-decoration-none text-dark">Gestión de Itinerarios</a></li>
+                {# muestra la acción actual enviada desde la vista de forma activa #}
+                <li class="breadcrumb-item active">{{ titulo_accion }}</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5 bg-white">
+            
+            <!-- encabezado del formulario -->
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                    <h2 class="h4 fw-bold mb-1">{{ titulo_accion }}</h2>
+                    <p class="text-muted small mb-0">Completa los detalles de la actividad para el paquete correspondiente.</p>
+                </div>
+                <!-- botón de escape rápido para regresar al listado operativo sin guardar cambios -->
+                <a href="{% url 'catalogo:gestion_itinerario' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Volver al Listado
+                </a>
+            </div>
+
+            <!-- formulario de captura de datos -->
+            <form method="post" novalidate>
+                
+                {% csrf_token %}
+
+                <!-- validación de errores globales -->
+                {# comprueba si existen errores que no pertenezcan a un campo en específico (ej. validaciones generales en forms.py) #}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 small">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- selección del paquete -->
+                <div class="mb-3">
+                    {# se vincula la etiqueta con su respectivo campo de entrada generado por Django #}
+                    <label for="{{ form.paquete.id_for_label }}" class="form-label fw-semibold">{{ form.paquete.label }}</label>
+                    
+                    {# se renderiza automáticamente con todos los paquetes disponibles #}
+                    {{ form.paquete }}
+                    
+                    {# se valida si hay errores específicos en este campo y los despliega en rojo #}
+                    {% if form.paquete.errors %}
+                        <div class="text-danger small mt-1">{{ form.paquete.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- fecha y horario -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.dia.id_for_label }}" class="form-label fw-semibold">{{ form.dia.label }}</label>
+                        {{ form.dia }}
+                        {% if form.dia.errors %}
+                            <div class="text-danger small mt-1">{{ form.dia.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.horario.id_for_label }}" class="form-label fw-semibold">{{ form.horario.label }}</label>
+                        {{ form.horario }}
+                        {% if form.horario.errors %}
+                            <div class="text-danger small mt-1">{{ form.horario.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- nombre de la actividad -->
+                <div class="mb-3">
+                    <label for="{{ form.actividad.id_for_label }}" class="form-label fw-semibold">{{ form.actividad.label }}</label>
+                    {{ form.actividad }}
+                    {% if form.actividad.errors %}
+                        <div class="text-danger small mt-1">{{ form.actividad.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- descripción -->
+                <div class="mb-4">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-semibold">{{ form.descripcion.label }}</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="text-danger small mt-1">{{ form.descripcion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- botón de acción -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'catalogo:gestion_itinerario' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    
+                    <!-- botón submit que envía el formulario y muestra dinámicamente el texto de la acción ("Guardar" o "Actualizar") -->
+                    <button type="submit" class="btn btn-info fw-bold text-dark px-4">
+                        <i class="bi bi-save me-1"></i>{{ boton_texto }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

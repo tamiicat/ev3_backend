@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Eliminación | Nomade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <!-- tarjeta de advertencia -->
+        <div class="card border-danger shadow-sm rounded-4 overflow-hidden bg-white">
+            
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="card-title mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Eliminación de Actividad</h5>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 text-center">
+                <i class="bi bi-trash3-fill text-danger display-3 mb-3"></i>
+                <h4 class="fw-bold mb-2">¿Estás seguro de que deseas eliminar esta actividad del itinerario?</h4>
+                <p class="text-muted mb-4">Esta acción no se puede deshacer y retirará la actividad del paquete turístico permanentemente:</p>
+
+                <!-- caja de resumen de la actividad a eliminar -->
+                <div class="p-3 bg-light rounded-3 border mb-4 text-start">
+                    <ul class="list-unstyled mb-0">
+                        {# inyecta de forma segura el nombre del paquete padre mediante la relación ForeignKey (itinerario.paquete.nombre) #}
+                        <li><strong>Paquete:</strong> {{ itinerario.paquete.nombre }}</li>
+                        
+                        {# inyecta el nombre, fecha y horario formateados de la actividad seleccionada #}
+                        <li><strong>Actividad:</strong> {{ itinerario.actividad }}</li>
+                        <li><strong>Fecha:</strong> {{ itinerario.dia|date:"d/m/Y" }}</li>
+                        <li><strong>Horario:</strong> {{ itinerario.horario|time:"H:i" }}</li>
+                    </ul>
+                </div>
+
+                <!-- formulario de acción -->
+                {# la eliminación de registros se hace por medio de POST para garantizar seguridad #}
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="d-flex justify-content-center gap-2">
+                        <!-- botón de cancelación -->
+                        {# Utiliza la etiqueta 'url' de Django para retornar de forma segura al panel de gestión de itinerarios sin borrar nada #}
+                        <a href="{% url 'catalogo:gestion_itinerario' %}" class="btn btn-outline-secondary px-4">
+                            Cancelar
+                        </a>
+                        
+                        <!-- botón de confirmación -->
+                        {# el botón tipo submit ejecuta la petición POST hacia la vista, la cual procederá a ejecutar itinerario.delete() #}
+                        <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                            <i class="bi bi-trash-fill me-1"></i>Sí, Eliminar Definitivamente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
