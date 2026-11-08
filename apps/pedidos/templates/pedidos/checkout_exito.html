@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Reserva Confirmada | Nomade{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 text-center p-4 p-md-5 bg-white">
+            
+            <!-- icono y código de la orden generado -->
+            <div class="mb-4">
+                <i class="bi bi-check-circle-fill text-success display-1"></i>
+                <h1 class="h2 fw-bold mt-3">¡Reserva Confirmada con Éxito!</h1>
+                <p class="text-muted lead">Muchas gracias por tu confirmación. Tus paquetes turísticos están listos y tu aventura está por comenzar.</p>
+                
+                {# inyecta de forma dinámica el identificador único de la orden o transacción procesada #}
+                <span class="badge bg-dark fs-6 px-3 py-2 text-info">Código de Reserva: {{ orden_id }}</span>
+            </div>
+
+            <!-- caja de resumen detallado de los paquetes y montos cancelados -->
+            <div class="text-start border rounded-3 p-3 p-md-4 mb-4 bg-light">
+                <h5 class="fw-bold mb-3"><i class="bi bi-globe me-2 text-info"></i>Paquetes Turísticos Reservados:</h5>
+                <ul class="list-group list-group-flush mb-3">
+                    {# bucle iterativo que recorre cada ítem (paquete reservado) enviado desde la vista de éxito #}
+                    {% for item in items %}
+                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong>{{ item.nombre }}</strong>
+                            {# muestra la cantidad de pasajeros o cupos y el precio unitario formateado #}
+                            <span class="text-muted small d-block">Pasajeros (Cupos): {{ item.cantidad }} x ${{ item.precio|floatformat:0 }}</span>
+                        </div>
+                        <!-- muestra el subtotal de la línea de producto formateado en moneda clp -->
+                        <span class="fw-bold">${{ item.subtotal|floatformat:0 }} CLP</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                
+                <!-- desglose financiero: cálculo del subtotal neto -->
+                <div class="d-flex justify-content-between pt-2 border-top">
+                    <span>Subtotal neto:</span>
+                    <span>${{ subtotal|floatformat:0 }} CLP</span>
+                </div>
+                
+                <!-- cálculo de impuestos (iva 19%) -->
+                <div class="d-flex justify-content-between text-muted">
+                    <span>IVA (19%):</span>
+                    <span>${{ iva|floatformat:0 }} CLP</span>
+                </div>
+                
+                <!-- monto total pagado (suma del neto más el iva) -->
+                <div class="d-flex justify-content-between fs-5 fw-bold text-dark pt-2 border-top mt-2">
+                    <span>Total Pagado:</span>
+                    <span class="text-dark">${{ total|floatformat:0 }} CLP</span>
+                </div>
+            </div>
+
+            <!-- botonera de navegación final para continuar explorando o revisar el perfil del usuario -->
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'catalogo:lista' %}" class="btn btn-info fw-bold text-dark px-4 py-2">
+                    <i class="bi bi-globe me-1"></i>Seguir Explorando
+                </a>
+                <a href="{% url 'usuarios:perfil' %}" class="btn btn-outline-secondary px-4 py-2">
+                    <i class="bi bi-person me-1"></i>Ver Mi Cuenta
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

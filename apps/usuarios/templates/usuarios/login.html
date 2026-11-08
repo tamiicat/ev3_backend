@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión | Nomade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5 bg-white">
+            
+            <div class="text-center mb-4">
+                <i class="bi bi-person-lock text-info display-4"></i>
+                <h2 class="h4 fw-bold mt-2">Acceso a Tu Cuenta</h2>
+                <p class="text-muted small">Ingresa tus datos para continuar con tus reservas de viaje.</p>
+            </div>
+
+            <!-- formulario de inicio de sesión con método post y novalidate para el control visual de errores por parte de django -->
+            <form method="post" novalidate>
+                
+                {% csrf_token %}
+                
+                {# campo oculto que almacena la ruta de redireccionamiento posterior (next) una vez autenticado el usuario #}
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <!-- bloque de validación para desplegar errores generales del formulario si ocurren (ej. credenciales inválidas) -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 small">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- correo electrónico -->
+                <div class="mb-3">
+                    <label for="{{ form.correo_electronico.id_for_label }}" class="form-label fw-semibold">Correo Electrónico</label>
+                    {{ form.correo_electronico }}
+                    {% if form.correo_electronico.errors %}
+                        <div class="text-danger small mt-1">{{ form.correo_electronico.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- contraseña -->
+                <div class="mb-4">
+                    <label for="{{ form.contrasena.id_for_label }}" class="form-label fw-semibold">Contraseña</label>
+                    {{ form.contrasena }}
+                    {% if form.contrasena.errors %}
+                        <div class="text-danger small mt-1">{{ form.contrasena.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- botonera de envío con diseño responsivo de ancho completo -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-info py-2 fw-bold text-dark">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+            
+            <hr class="my-4">
+            
+            <!-- sección de pie de tarjeta con enlace de redirección hacia el módulo de registro para nuevos usuarios -->
+            <div class="text-center">
+                <p class="text-muted small mb-0">¿Nuevo viajero? 
+                    <a href="{% url 'usuarios:registro' %}" class="fw-semibold text-info text-decoration-none">Regístrate gratis</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

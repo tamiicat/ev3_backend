@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Cuenta | Nomade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- información del perfil del usuario logueado -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+            
+            <!-- cabecera oscura con los datos principales del usuario (nombre, rut y rol) -->
+            <div class="bg-dark text-white p-4 p-md-5">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-person-circle fs-1 text-info"></i>
+                    <div>
+                        <h2 class="h3 fw-bold mb-0">{{ usuario.nombre }} {{ usuario.apellido }}</h2>
+                        <span class="badge bg-info text-dark fw-bold mt-1">RUT: {{ usuario.rut }}</span>
+                        
+                        {# evalúa de forma condicional si el usuario posee rol de administrador para mostrar una insignia distintiva #}
+                        {% if usuario.rol == 'administrador' %}
+                            <span class="badge bg-info text-dark fw-bold mt-1 ms-1">Personal de Agencia</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- detalles de contacto y accesos rápidos operativos -->
+            <div class="card-body p-4 p-md-5">
+                <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill me-2 text-info"></i>Datos del Viajero</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th class="bg-light text-muted w-25">Nombre Completo:</th>
+                                <td>{{ usuario.nombre }} {{ usuario.apellido }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light text-muted">Correo Electrónico:</th>
+                                <td>{{ usuario.correo_electronico }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light text-muted">Teléfono de Contacto:</th>
+                                {# imprime el teléfono o un texto predeterminado si el campo se encuentra vacío #}
+                                <td>{{ usuario.telefono|default:"No especificado" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- botonera de navegación para explorar paquetes o gestionar el catálogo si es administrador -->
+                <div class="mt-4 d-flex gap-2">
+                    <a href="{% url 'catalogo:lista' %}" class="btn btn-info fw-semibold">
+                        <i class="bi bi-globe me-1"></i>Explorar Paquetes Turísticos
+                    </a>
+                    
+                    {# muestra el botón de gestión de catálogo solo si el usuario autenticado es administrador #}
+                    {% if usuario.rol == 'administrador' %}
+                        <a href="{% url 'catalogo:gestion' %}" class="btn btn-dark">
+                            <i class="bi bi-briefcase me-1"></i>Gestionar Catálogo
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- tarjeta secundaria que alberga el historial de reservas de viajes del usuario -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="card-body p-4 p-md-5">
+                <h5 class="fw-bold mb-4"><i class="bi bi-calendar2-check-fill me-2 text-info"></i>Historial de Reservas</h5>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Reserva</th>
+                                <th>Paquete Turístico</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">Reseña</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {# bucle iterativo que recorre cada registro dentro de la lista de reservas del usuario #}
+                            {% for reserva in reservas %}
+                            <tr>
+                                <td class="fw-bold text-muted">#{{ reserva.id }}</td>
+                                
+                                <!-- enlace al detalle público del paquete turístico reservado -->
+                                <td>
+                                    <a href="{% url 'catalogo:detalle' reserva.paquete.id %}" class="text-dark text-decoration-none fw-semibold">
+                                        {{ reserva.paquete.nombre }}
+                                    </a>
+                                </td>
+                                
+                                <!-- fecha de la reserva formateada mediante el filtro de fecha de django -->
+                                <td>{{ reserva.fecha|date:"d/m/Y" }}</td>
+                                
+                                <!-- insignia de estado que cambia de color dinámicamente según la condición de la reserva -->
+                                <td>
+                                    {% if reserva.estado == 'Confirmada' or reserva.estado == 'Pagada' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">{{ reserva.estado }}</span>
+                                    {% elif reserva.estado == 'Pendiente' %}
+                                        <span class="badge bg-warning-subtle text-info border border-warning-subtle">{{ reserva.estado }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ reserva.estado }}</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- precio total de la reserva formateado sin decimales -->
+                                <td class="text-end fw-bold text-dark">${{ reserva.precio_total|floatformat:0 }}</td>
+                                
+                                <!-- columna para calificar y dejar una reseña interactiva mediante un modal bootstrap -->
+                                <td class="text-center">
+                                    {% if reserva.estado == 'Pagada' %}
+                                        <button type="button" class="btn btn-sm btn-outline-warning"
+                                                data-bs-toggle="modal" data-bs-target="#modalResena"
+                                                data-paquete-id="{{ reserva.paquete.id }}"
+                                                data-paquete-nombre="{{ reserva.paquete.nombre }}"
+                                                data-calificacion="{{ reserva.resena.calificacion|default:'' }}"
+                                                data-comentario="{{ reserva.resena.comentario|default:'' }}">
+                                            <i class="bi bi-star me-1"></i>{% if reserva.resena %}Editar reseña{% else %}Dejar reseña{% endif %}
+                                        </button>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                    Aún no tienes reservas registradas en tu historial.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ventana modal de bootstrap para crear o editar la reseña del paquete turístico -->
+<div class="modal fade" id="modalResena" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" id="formResena" class="modal-content rounded-4 border-0">
+            {# token de seguridad obligatorio de django para prevenir ataques csrf #}
+            {% csrf_token %}
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Reseña: <span id="resenaPaquete"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label fw-semibold">Calificación</label>
+                <!-- sistema interactivo de estrellas basado en inputs de tipo radio ocultos -->
+                <div class="estrellas mb-3">
+                    {% for i in "54321" %}
+                        <input type="radio" name="calificacion" id="estrella{{ i }}" value="{{ i }}" required>
+                        <label for="estrella{{ i }}">★</label>
+                    {% endfor %}
+                </div>
+                <label for="resenaComentario" class="form-label fw-semibold">Tu experiencia</label>
+                <textarea name="comentario" id="resenaComentario" class="form-control" rows="4" required></textarea>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-info fw-semibold">Guardar reseña</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- estilos css incrustados para el diseño del selector de estrellas en la reseña -->
+<style>
+    .estrellas { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 4px; position: relative; }
+    .estrellas input { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+    .estrellas label { font-size: 2rem; color: #ccc; cursor: pointer; }
+    .estrellas input:checked ~ label,
+    .estrellas label:hover,
+    .estrellas label:hover ~ label { color: #ffc107; }
+</style>
+
+<!-- script de javascript para actualizar dinámicamente la acción y los datos del modal al abrirlo -->
+<script>
+    const urlResena = "{% url 'catalogo:guardar_resena' 0 %}";
+
+    document.getElementById('modalResena').addEventListener('show.bs.modal', function (e) {
+        const btn = e.relatedTarget;
+        document.getElementById('formResena').action = urlResena.replace('/0/', `/${btn.dataset.paqueteId}/`);
+        document.getElementById('resenaPaquete').textContent = btn.dataset.paqueteNombre;
+        document.getElementById('resenaComentario').value = btn.dataset.comentario || '';
+        document.querySelectorAll('#formResena input[name=calificacion]').forEach(r => {
+            r.checked = (r.value === btn.dataset.calificacion);
+        });
+    });
+</script>
+{% endblock %}
