@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}{{ paquete.nombre }} | Nomade{% endblock %}
+
+{% block content %}
+<!-- breadcrumb para facilitar la navegación y el retorno al catálogo o inicio -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:inicio' %}" class="text-decoration-none text-dark">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalogo:lista' %}" class="text-decoration-none text-dark">Catálogo</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ paquete.nombre }}</li>
+    </ol>
+</nav>
+
+<!-- tarjeta principal de presentación del paquete turístico -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5 bg-white">
+    <div class="row g-0">
+        <!-- muestra la imagen principal del destino o un icono de respaldo si no está cargada -->
+        <div class="col-md-6 bg-light d-flex align-items-center justify-content-center p-0 border-end" style="min-height: 350px;">
+            {% if paquete.imagen %}
+                <img src="{{ paquete.imagen.url }}" alt="{{ paquete.nombre }}" class="img-fluid w-100 h-100" style="object-fit: cover;">
+            {% else %}
+                <i class="bi bi-map display-1 text-info opacity-50"></i>
+            {% endif %}
+        </div>
+
+        <!-- detalles descriptivos, precios, fechas y acciones de reserva o administración -->
+        <div class="col-md-6 p-4 p-md-5 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h1 class="h2 fw-bold text-dark mb-0">{{ paquete.nombre }}</h1>
+
+                    {# comprueba mediante una variable de contexto si el usuario actual posee privilegios de administrador #}
+                    {% if es_admin %}
+                    <div class="btn-group ms-3">
+                        <a href="{% url 'catalogo:editar' paquete.id %}" class="btn btn-sm btn-outline-dark">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a href="{% url 'catalogo:eliminar' paquete.id %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- caja con las fechas de inicio y fin del viaje formateadas mediante filtros de fecha -->
+                <div class="mb-4 p-3 bg-light rounded-3 border">
+                    <div class="row text-muted">
+                        <div class="col-6">
+                            <span class="d-block small text-uppercase fw-bold mb-1"><i class="bi bi-calendar-event text-info me-1"></i>Inicio</span>
+                            <span class="text-dark">{{ paquete.fecha_inicio|date:"d M Y" }}</span>
+                        </div>
+                        <div class="col-6 border-start">
+                            <span class="d-block small text-uppercase fw-bold mb-1"><i class="bi bi-calendar-check text-info me-1"></i>Fin</span>
+                            <span class="text-dark">{{ paquete.fecha_fin|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- precio formateado eliminando decimales sobrantes -->
+                <div class="mb-3">
+                    <span class="display-5 fw-bold text-dark">${{ paquete.precio_paquete|floatformat:0 }}</span>
+                    <span class="text-muted small ms-2">CLP</span>
+                </div>
+
+                <div class="mb-4">
+                    <p class="text-muted lh-base">{{ paquete.descripcion }}</p>
+                </div>
+            </div>
+
+            <!-- sección inferior con el botón de reserva o estado de agotado -->
+            <div class="border-top pt-4 mt-auto">
+                {% if paquete.cupos_disponibles > 0 %}
+                    {# este formulario envía por get las actividades, hoteles y vuelos seleccionados hacia el módulo de pedidos #}
+                    <form id="form-reserva" method="get" action="{% url 'pedidos:agregar' paquete.id %}">
+                        <div id="aviso-seleccion" class="small text-muted mb-2 text-center"></div>
+                        <button type="submit" id="btn-reservar" class="btn btn-info btn-lg w-100 py-3 fw-bold text-white shadow-sm">
+                            Reservar (Quedan {{ paquete.cupos_disponibles }} cupos)
+                        </button>
+                    </form>
+                {% else %}
+                    <button class="btn btn-secondary btn-lg w-100 py-3" disabled>Sin Cupos Disponibles</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- itinerario, hoteles incluidos y vuelos asociados -->
+<div class="row g-4 mb-5">
+    <!-- itinerario de actividades -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-journal-text me-2"></i>Itinerario</span>
+                <span class="badge bg-light text-dark" id="contador-actividades">0 / 5</span>
+            </div>
+            <ul class="list-group list-group-flush" id="lista-actividades">
+                {# bucle que recorre todos los itinerarios relacionados al paquete #}
+                {% for itinerario in paquete.itinerarios.all %}
+                <li class="list-group-item p-0">
+                    <label class="d-flex gap-3 p-3 mb-0 w-100" for="act-{{ itinerario.id }}" style="cursor: pointer;">
+                        {% if paquete.cupos_disponibles > 0 %}
+                        <!-- casilla de verificación vinculada al formulario de reserva externo mediante el atributo form -->
+                        <input class="form-check-input flex-shrink-0 mt-1 chk-actividad rounded-circle" type="checkbox"
+                            id="act-{{ itinerario.id }}" name="actividades" value="{{ itinerario.id }}"
+                            form="form-reserva">
+                        {% endif %}
+                        <span>
+                            <strong>{{ itinerario.dia|date:"d M" }} - {{ itinerario.horario|time:"H:i" }}</strong><br>
+                            {{ itinerario.actividad }}: <span class="text-muted small">{{ itinerario.descripcion }}</span>
+                        </span>
+                    </label>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Itinerario en construcción.</li>
+                {% endfor %}
+            </ul>
+            {% if paquete.cupos_disponibles > 0 and paquete.itinerarios.exists %}
+            <div class="card-footer bg-white small text-muted">
+                Elige entre 3 y 5 actividades para tu paquete.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- hoteles incluidos -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-building me-2"></i>Hoteles Incluidos</span>
+                <span class="badge bg-light text-dark" id="contador-hoteles">0 / 5</span>
+            </div>
+            <ul class="list-group list-group-flush">
+                {# bucle que recorre los hoteles asociados al paquete #}
+                {% for hotel in paquete.hoteles.all %}
+                <li class="list-group-item p-0">
+                    <label class="d-flex gap-3 p-3 mb-0 w-100" for="hotel-{{ hotel.id }}" style="cursor: pointer;">
+                        {% if paquete.cupos_disponibles > 0 %}
+                        <!-- selector de opción única (radio) para elegir el hotel de la reserva -->
+                        <input class="form-check-input flex-shrink-0 mt-1 chk-hotel" type="radio"
+                            id="hotel-{{ hotel.id }}" name="hoteles" value="{{ hotel.id }}"
+                            form="form-reserva"{% if paquete.hoteles.count == 1 %} checked{% endif %}>
+                        {% endif %}
+                        <span>
+                            <strong>{{ hotel.nombre }}</strong> ({{ hotel.categoria }})<br>
+                            <span class="text-muted small">{{ hotel.ciudad }} - {{ hotel.direccion }}</span>
+                        </span>
+                    </label>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Sin hoteles registrados.</li>
+                {% endfor %}
+            </ul>
+            {% if paquete.cupos_disponibles > 0 and paquete.hoteles.exists %}
+            <div class="card-footer bg-white small text-muted">
+                Elige 1 hotel para tu paquete.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- vuelos asociados -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-airplane me-2"></i>Vuelos</span>
+                <span class="badge bg-light text-dark" id="contador-vuelos">0 / 1</span>
+            </div>
+            <ul class="list-group list-group-flush">
+                {# bucle que recorre los vuelos disponibles para el paquete #}
+                {% for vuelo in paquete.vuelos.all %}
+                <li class="list-group-item p-0">
+                    <label class="d-flex gap-3 p-3 mb-0 w-100" for="vuelo-{{ vuelo.id }}" style="cursor: pointer;">
+                        {% if paquete.cupos_disponibles > 0 %}
+                        <!-- selector de opción única (radio) para el vuelo del paquete -->
+                        <input class="form-check-input flex-shrink-0 mt-1 chk-vuelo" type="radio"
+                            id="vuelo-{{ vuelo.id }}" name="vuelos" value="{{ vuelo.id }}"
+                            form="form-reserva"{% if paquete.vuelos.count == 1 %} checked{% endif %}>
+                        {% endif %}
+                        <span>
+                            <strong>{{ vuelo.aerolinea }}</strong><br>
+                            <span class="text-muted small">{{ vuelo.ciudad_origen }} &rarr; {{ vuelo.ciudad_destino }}</span><br>
+                            <span class="text-muted small">Salida: {{ vuelo.fecha_salida|date:"d/m/Y" }} {{ vuelo.hora_salida|time:"H:i" }}</span>
+                        </span>
+                    </label>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Sin vuelos registrados.</li>
+                {% endfor %}
+            </ul>
+            {% if paquete.cupos_disponibles > 0 and paquete.vuelos.exists %}
+            <div class="card-footer bg-white small text-muted">
+                Elige 1 vuelo para tu paquete.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- sección de reseñas y calificaciones de pasajeros -->
+<div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5 bg-white">
+    <h3 class="h4 fw-bold mb-4">
+        <i class="bi bi-star-fill text-info me-2"></i>Reseñas de Pasajeros
+        {% if promedio %}
+            <small class="text-muted fs-6">{{ promedio|floatformat:1 }}/5 ({{ resenas|length }})</small>
+        {% endif %}
+    </h3>
+
+    {# bucle para listar todas las opiniones publicadas asociadas al paquete #}
+    {% for resena in paquete.resenas.all %}
+        <div class="mb-3 border-bottom pb-3">
+            <div class="d-flex align-items-center mb-2">
+                <div class="fw-bold me-3">{{ resena.usuario.nombre }} {{ resena.usuario.apellido }}</div>
+                <div class="text-info">
+                    {# bucle interno para renderizar estrellas pintadas o vacías según la calificación numérica #}
+                    {% for i in "12345" %}{% if forloop.counter <= resena.calificacion %}★{% else %}☆{% endif %}{% endfor %}
+                </div>
+                <small class="text-muted ms-auto">{{ resena.fecha_publicacion|date:"d M Y" }}</small>
+            </div>
+            <p class="mb-0 text-secondary">{{ resena.comentario }}</p>
+        </div>
+    {% empty %}
+        <p class="text-muted mb-0">Aún no hay reseñas para este paquete turístico. ¡Sé el primero en viajar y comentarnos tu experiencia!</p>
+    {% endfor %}
+</div>
+
+<!-- archivo de script externo encargado de validar las selecciones interactivas de la vista -->
+<script src="{% static 'js/seleccion_paquete.js' %}" defer></script>
+{% endblock %}

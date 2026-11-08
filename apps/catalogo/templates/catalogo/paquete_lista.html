@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogo de Paquetes | Nomade{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- panel de filtros por categorías de viaje -->
+    <div class="col-lg-3">
+        <div class="card border shadow-sm mb-4 rounded-3 bg-white">
+            <div class="bg-info text-white p-3 d-flex align-items-center rounded-top">
+                <i class="bi bi-funnel-fill text-white me-2"></i>
+                <h6 class="mb-0 fw-bold">Categorías</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                <!-- enlace para mostrar todos los destinos (limpia la categoría seleccionada y mantiene la búsqueda previa si existe) -->
+                <a href="?{% if query_actual %}q={{ query_actual }}{% endif %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 {% if not categoria_seleccionada %}bg-info-subtle text-dark fw-bold{% else %}text-muted{% endif %}">
+                    Todos los Destinos
+                    <!-- muestra el conteo total de resultados o paquetes disponibles -->
+                    <span class="badge {% if not categoria_seleccionada %}bg-info text-white{% else %}bg-light text-dark border{% endif %} rounded-pill">{{ total_resultados }}</span>
+                </a>
+                
+                {# bucle iterativo que recorre todas las categorías de destinos enviadas desde el backend #}
+                {% for cat in categorias %}
+                <a href="?categoria={{ cat.slug }}{% if query_actual %}&q={{ query_actual }}{% endif %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 {% if categoria_seleccionada == cat.slug %}bg-info-subtle text-dark fw-bold{% else %}text-muted{% endif %}">
+                    {{ cat.nombre }}
+                    <!-- muestra el número de paquetes asociados a esta categoría específica -->
+                    <span class="badge {% if categoria_seleccionada == cat.slug %}bg-info text-white{% else %}bg-light text-dark border{% endif %} rounded-pill">{{ cat.paquetes.count|default:"0" }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- columna principal derecha: buscador, selector de ordenamiento y grilla de paquetes turísticos -->
+    <div class="col-lg-9">
+        <!-- tarjeta superior con el formulario de búsqueda y filtros avanzados por GET -->
+        <div class="card border shadow-sm p-3 mb-4 rounded-3 bg-white">
+            <form method="get" class="row g-2 align-items-center">
+                {# conserva la categoría activa en el formulario si el usuario realiza una búsqueda de texto #}
+                {% if categoria_seleccionada %}
+                    <input type="hidden" name="categoria" value="{{ categoria_seleccionada }}">
+                {% endif %}
+                
+                <!-- campo de texto para buscar por nombre de destino o palabra clave -->
+                <div class="col-md-7">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="q" class="form-control border-start-0" placeholder="Buscar destino o palabra clave..." value="{{ query_actual }}">
+                    </div>
+                </div>
+                
+                <!-- selector de ordenamiento que envía el formulario automáticamente al cambiar de opción (onchange) -->
+                <div class="col-md-3">
+                    <select name="orden" class="form-select" onchange="this.form.submit()">
+                        <option value="recientes" {% if orden_actual == 'recientes' %}selected{% endif %}>Más próximos (Fecha)</option>
+                        <option value="precio_asc" {% if orden_actual == 'precio_asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
+                        <option value="precio_desc" {% if orden_actual == 'precio_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+                    </select>
+                </div>
+                
+                <!-- botón de envío tradicional para la búsqueda -->
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-dark">Buscar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- grilla de visualización de los paquetes turísticos -->
+        <div class="row g-4 mb-4">
+            {# bucle que recorre cada objeto paquete disponible en el queryset filtrado #}
+            {% for paquete in paquetes %}
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100 shadow-sm border bg-white">
+                    <!-- contenedor superior para la imagen del paquete o un icono de respaldo si no existe imagen -->
+                    <div class="bg-light text-center p-0 border-bottom position-relative" style="height: 160px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        {% if paquete.imagen %}
+                            <img src="{{ paquete.imagen.url }}" alt="{{ paquete.nombre }}" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                        {% else %}
+                            <i class="bi bi-image text-muted display-4"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- cuerpo de la tarjeta con la información técnica y de fechas del viaje -->
+                    <div class="card-body p-3 d-flex flex-column">
+                        <div class="small text-muted mb-1">
+                            {# formatea las fechas de inicio y fin del viaje utilizando el filtro de fecha de django #}
+                            <i class="bi bi-calendar-event me-1"></i>{{ paquete.fecha_inicio|date:"d/m/Y" }} - {{ paquete.fecha_fin|date:"d/m/Y" }}
+                        </div>
+                        
+                        <!-- nombre y descripción breve del paquete con truncamiento visual -->
+                        <h5 class="card-title fs-6 fw-bold mb-2">{{ paquete.nombre }}</h5>
+                        <p class="card-text text-muted small flex-grow-1 text-truncate">{{ paquete.descripcion }}</p>
+                        
+                        <!-- sección de precios y estado de disponibilidad de cupos -->
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            {# formatea el precio eliminando decimales sobrantes mediante floatformat #}
+                            <span class="fs-5 fw-bold text-dark">${{ paquete.precio_paquete|floatformat:0 }}</span>
+                            
+                            <!-- etiqueta condicional que cambia de color según si hay cupos disponibles o si está agotado -->
+                            <span class="badge {% if paquete.cupos_disponibles > 0 %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} border">
+                                Cupos: {{ paquete.cupos_disponibles }}
+                            </span>
+                        </div>
+                        
+                        <!-- botonera de acciones rápidas para ver detalles o reservar directamente -->
+                        <div class="d-grid gap-2 mt-3">
+                            <a href="{% url 'catalogo:detalle' paquete.id %}" class="btn btn-outline-dark btn-sm">Ver Detalles</a>
+                            
+                            {# oculta el botón de reserva si el paquete se encuentra completamente agotado (0 cupos) #}
+                            {% if paquete.cupos_disponibles > 0 %}
+                                <a href="{% url 'pedidos:agregar' paquete.id %}" class="btn btn-info btn-sm fw-semibold text-white">Reservar</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {# etiqueta empty que se activa si la lista de paquetes viene vacía o sin coincidencias de búsqueda #}
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No se encontraron paquetes en este continente.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
